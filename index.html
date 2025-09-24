@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>マイ辞書</title>
+ <style>
+  body {
+    font-family: sans-serif;
+    margin: 0 auto;
+    padding: 10px;
+    max-width: 500px;       /* 画面幅に合わせる */
+    background: #000;
+    color: #fff;
+    font-size: 18px;        /* スマホ用フォントサイズ */
+    line-height: 1.5;
+  }
+
+  input, button {
+    width: 100%;             /* 幅いっぱい */
+    box-sizing: border-box;  /* パディング込みで幅調整 */
+    margin: 5px 0;
+    padding: 10px;           /* タッチしやすく */
+    background: #222;
+    color: #fff;
+    border: 1px solid #555;
+  }
+
+  button { cursor: pointer; }
+
+  li {
+    margin: 8px 0;
+    word-break: break-word;  /* 長い意味を改行 */
+  }
+
+  rt { font-size: 12px; color: #aaa; }
+</style>
+
+</head>
+<body>
+  <h1>自分専用辞書</h1>
+
+  <!-- 入力フォーム（まとめて入力） -->
+  <input id="entry" placeholder="例: 傍ら（かたわら）：そば。隣。">
+  <button onclick="addEntry()">追加</button>
+  <button onclick="addWithAI()">AIで意味補完</button>
+
+  <br><br>
+  <input id="search" placeholder="検索" oninput="searchWord()">
+  <ul id="list"></ul>
+
+  <script>
+    let dictionary = JSON.parse(localStorage.getItem("dictionary")) || [];
+
+   // 自動ふりわけ（全角・半角対応）
+function parseEntry(text) {
+  // 「漢字（よみ）：意味」形式（全角・半角どちらもOK）
+  const regex = /^(.+?)[（(](.+?)[）)][:：](.+)$/;
+  const match = text.match(regex);
+  if (match) {
+    return { word: match[1].trim(), yomi: match[2].trim(), meaning: match[3].trim() };
+  }
+  // フォーマット外なら全部そのまま
+  return { word: text.trim(), yomi: "", meaning: "" };
+}
+
+    // 単語追加
+    function addEntry() {
+      const entryText = document.getElementById("entry").value.trim();
+      if (!entryText) return alert("入力してね！");
+      const { word, yomi, meaning } = parseEntry(entryText);
+
+      dictionary.push({ word, yomi, meaning });
+      localStorage.setItem("dictionary", JSON.stringify(dictionary));
+      showList(dictionary);
+
+      document.getElementById("entry").value = "";
+    }
+
+    // AIで意味補完
+    async function addWithAI() {
+      const entryText = document.getElementById("entry").value.trim();
+      if (!entryText) return alert("入力してね！");
+      const { word, yomi, meaning } = parseEntry(entryText);
+
+      let meaningFinal = meaning;
+      if (!meaningFinal) {
+        meaningFinal = await getDefinitionFromAI(word);
+      }
+
+      dictionary.push({ word, yomi, meaning: meaningFinal });
+      localStorage.setItem("dictionary", JSON.stringify(dictionary));
+      showList(dictionary);
+
+      document.getElementById("entry").value = "";
+    }
+
+    // OpenAI APIで意味を取得
+    async function getDefinitionFromAI(word) {
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer YOUR_API_KEY_HERE", // ←APIキーを入れる
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [
+              { role: "system", content: "あなたは辞書アシスタントです。短く簡単に説明してください。" },
+              { role: "user", content: `「${word}」の意味を簡単に説明して` }
+            ]
+          })
+        });
+        const data = await response.json();
+        return data.choices[0].message.content;
+      } catch (e) {
+        console.error(e);
+        return "（AI補完に失敗しました）";
+      }
+    }
+
+    // 検索
+    function searchWord() {
+      const query = document.getElementById("search").value;
+      const result = dictionary.filter(item =>
+        item.word.includes(query) || item.meaning.includes(query) || item.yomi.includes(query)
+      );
+      showList(result);
+    }
+
+    // 一覧表示（編集機能つき）
+    function showList(data) {
+      document.getElementById("list").innerHTML =
+        data.map((item, index) =>
+          `<li>
+            <ruby>${item.word}<rt>${item.yomi}</rt></ruby> : ${item.meaning}
+            <button onclick="editEntry(${index})">編集</button>
+            <button onclick="deleteEntry(${index})">削除</button>
+          </li>`
+        ).join("");
+    }
+
+    // 編集
+    function editEntry(index) {
+      const item = dictionary[index];
+      const newWord = prompt("単語を修正:", item.word);
+      const newYomi = prompt("よみを修正:", item.yomi);
+      const newMeaning = prompt("意味を修正:", item.meaning);
+
+      if (newWord !== null) dictionary[index].word = newWord;
+      if (newYomi !== null) dictionary[index].yomi = newYomi;
+      if (newMeaning !== null) dictionary[index].meaning = newMeaning;
+
+      localStorage.setItem("dictionary", JSON.stringify(dictionary));
+      showList(dictionary);
+    }
+
+    // 削除
+    function deleteEntry(index) {
+      if (confirm("この単語を削除しますか？")) {
+        dictionary.splice(index, 1);
+        localStorage.setItem("dictionary", JSON.stringify(dictionary));
+        showList(dictionary);
+      }
+    }
+
+    showList(dictionary);
+  </script>
+</body>
+</html>
