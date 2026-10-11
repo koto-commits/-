@@ -1,0 +1,724 @@
+/* =========================================================
+   Café Hakumei style.css
+   テーマ：ベージュ × 夕暮れ × 大理石 × ギンガムチェック
+   ========================================================= */
+
+:root {
+  --color-bg: #f8f4ee;      /* 背景（クリーム） */
+  --color-beige: #e9dfd1;   /* ベージュ */
+  --color-sand: #cbb79d;    /* 砂色（線やギンガム） */
+  --color-text: #4a4037;    /* 文字（こげ茶） */
+  --color-sub: #9b8f82;     /* 薄い文字 */
+  --color-sunset: #d98e4f;  /* 夕焼け色（アクセント） */
+  --font-en: "Cormorant Garamond", serif;
+  --font-ja: "Shippori Mincho", serif;
+  --side: clamp(20px, 6vw, 96px);
+}
+
+/* ---------- リセット ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-en), var(--font-ja);
+  line-height: 2;
+  letter-spacing: 0.05em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ---------- 写真の枠（画像ができるまでは色のグラデーション） ---------- */
+.photo {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+/* 仮の文字（どの画像を入れる場所か） */
+.photo span {
+  font-family: var(--font-en);
+  font-style: italic;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 画像を入れたら、枠いっぱいにきれいに収まる */
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 仮の色たち（ムードボードの写真の色から作ったもの） */
+.ph-cream  { background: linear-gradient(160deg, #efe6d8 0%, #d8c6ad 100%); }
+.ph-wood   { background: linear-gradient(160deg, #e8d9c2 0%, #b8946d 100%); }
+.ph-marble { background: radial-gradient(circle at 30% 30%, #ffffff 0%, #ebe5dc 60%, #d9d0c4 100%); }
+.ph-sunset { background: linear-gradient(180deg, #f2cf9c 0%, #e9a466 55%, #9a7458 100%); }
+.ph-field  { background: linear-gradient(180deg, #f7cf8b 0%, #f0a85d 55%, #a3a466 56%, #7d8a4f 100%); }
+
+/* ---------- ギンガムチェック（CSSだけで作れる！） ---------- */
+/* 縦じまと横じまを重ねると、重なったところが濃くなってチェックになる */
+.gingham {
+  background-color: #fbf8f3;
+  background-image:
+    linear-gradient(90deg, rgba(203, 183, 157, 0.45) 50%, transparent 50%),
+    linear-gradient(rgba(203, 183, 157, 0.45) 50%, transparent 50%);
+  background-size: 28px 28px; /* マス目の大きさ */
+}
+
+.gingham--band {
+  height: 120px;
+}
+
+/* ---------- ボタン ---------- */
+.btn {
+  display: inline-block;
+  padding: 12px 40px;
+  border: 1px solid var(--color-text);
+  background: transparent;
+  font-family: var(--font-en);
+  font-size: 18px;
+  letter-spacing: 0.15em;
+  transition: background 0.4s, color 0.4s;
+}
+
+.btn:hover {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: transparent;
+  color: var(--color-text);
+}
+
+/* ---------- ヘッダー ---------- */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 72px;
+  padding: 0 var(--side);
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  background: rgba(248, 244, 238, 0.9);
+  z-index: 100;
+}
+
+.header__logo {
+  font-family: var(--font-en);
+  font-size: 24px;
+  font-style: italic;
+  margin-right: auto;
+}
+
+.header__nav {
+  display: flex;
+  gap: 32px;
+  font-size: 17px;
+}
+
+.header__nav a,
+.cart-btn {
+  position: relative;
+}
+
+/* ホバーで下線がスッと伸びる */
+.header__nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 2px;
+  width: 0;
+  height: 1px;
+  background: currentColor;
+  transition: width 0.4s;
+}
+
+.header__nav a:hover::after {
+  width: 100%;
+}
+
+.cart-btn {
+  background: none;
+  border: none;
+  font-size: 17px;
+}
+
+.cart-btn__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--color-sunset);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* ---------- トップ ---------- */
+.hero {
+  min-height: 100vh;
+  padding: 120px var(--side) 80px;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr; /* 左：文字 ／ 右：コラージュ */
+  gap: 48px;
+  align-items: center;
+}
+
+.hero__en {
+  font-style: italic;
+  color: var(--color-sub);
+}
+
+.hero__title {
+  font-family: var(--font-en);
+  font-weight: 400;
+  font-size: clamp(56px, 8vw, 120px);
+  line-height: 1;
+  margin: 16px 0 24px;
+}
+
+.hero__sub {
+  font-family: var(--font-ja);
+  margin-bottom: 40px;
+}
+
+/* コラージュ：12×12 のマス目に写真を自由に置く */
+.hero__collage {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(12, 1fr);
+  aspect-ratio: 1 / 1;
+  gap: 12px;
+}
+
+/* grid-column: 開始の線 / 終わりの線 で位置と大きさを決める */
+.collage-1 { grid-column: 1 / 6;   grid-row: 1 / 7; }   /* 左上：ラテ */
+.collage-2 { grid-column: 7 / 13;  grid-row: 1 / 9; }   /* 右上：店内 */
+.collage-3 { grid-column: 5 / 9;   grid-row: 6 / 13; }  /* 真ん中：ギンガム */
+.collage-4 { grid-column: 1 / 5;   grid-row: 7 / 13; }  /* 左下：海 */
+.collage-5 { grid-column: 10 / 13; grid-row: 10 / 13; } /* 右下：小道 */
+
+/* ギンガムは写真の後ろに回す */
+.collage-3 {
+  z-index: -1;
+}
+
+/* 写真がふわっと順番に出てくる */
+.hero__collage > * {
+  animation: fade-up 1.2s ease both;
+}
+.collage-2 { animation-delay: 0.2s; }
+.collage-3 { animation-delay: 0.4s; }
+.collage-4 { animation-delay: 0.6s; }
+.collage-5 { animation-delay: 0.8s; }
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- セクション共通 ---------- */
+.section {
+  padding: 140px var(--side);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.section__title {
+  font-family: var(--font-en);
+  font-weight: 400;
+  font-style: italic;
+  font-size: 48px;
+  line-height: 1.2;
+  margin-bottom: 32px;
+}
+
+.section__lead {
+  font-family: var(--font-ja);
+  color: var(--color-sub);
+  margin: -16px 0 40px;
+}
+
+/* ---------- コンセプト ---------- */
+.concept {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+
+/* 縦書き */
+.concept__vertical {
+  writing-mode: vertical-rl;
+  font-family: var(--font-ja);
+  font-size: 22px;
+  letter-spacing: 0.3em;
+}
+
+.concept__body p {
+  font-family: var(--font-ja);
+}
+
+.concept__note {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--color-sub);
+}
+
+.concept__photo {
+  aspect-ratio: 3 / 4;
+  border-radius: 999px 999px 0 0; /* 上だけ丸い「アーチ型」 */
+}
+
+/* ---------- メニュー ---------- */
+.menu__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  margin-bottom: 48px;
+  border-bottom: 1px solid var(--color-beige);
+}
+
+.tab {
+  padding: 8px 0;
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  margin-bottom: -1px;
+  font-size: 20px;
+  color: var(--color-sub);
+}
+
+.tab.is-active {
+  color: var(--color-text);
+  border-bottom-color: var(--color-text);
+}
+
+.menu__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 56px 32px;
+}
+
+.menu-card__img {
+  aspect-ratio: 4 / 5;
+  margin-bottom: 16px;
+}
+
+.menu-card__img img,
+.menu-card__img.photo {
+  transition: transform 0.8s ease;
+}
+
+.menu-card:hover .menu-card__img img {
+  transform: scale(1.05);
+}
+
+.menu-card__en {
+  font-style: italic;
+  font-size: 15px;
+  color: var(--color-sub);
+  line-height: 1.4;
+}
+
+.menu-card__name {
+  font-family: var(--font-ja);
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.menu-card__desc {
+  font-family: var(--font-ja);
+  font-size: 13px;
+  color: var(--color-sub);
+  line-height: 1.8;
+}
+
+.menu-card__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-beige);
+}
+
+.menu-card__price {
+  font-size: 20px;
+}
+
+.add-btn {
+  background: none;
+  border: none;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid currentColor;
+  line-height: 1.4;
+}
+
+.add-btn:hover {
+  color: var(--color-sunset);
+}
+
+/* ---------- 店舗情報 ---------- */
+.shop {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.shop__photo {
+  aspect-ratio: 4 / 5;
+}
+
+.shop__info {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+}
+
+.shop__info dt,
+.shop__info dd {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-beige);
+}
+
+.shop__info dt {
+  font-style: italic;
+  color: var(--color-sub);
+}
+
+.shop__info dd {
+  font-family: var(--font-ja);
+}
+
+/* ---------- フッター ---------- */
+.footer {
+  padding: 80px var(--side) 120px;
+  text-align: center;
+  background: var(--color-beige);
+  color: var(--color-sub);
+}
+
+.footer__logo {
+  font-size: 32px;
+  font-style: italic;
+  color: var(--color-text);
+}
+
+/* ---------- スクロールでふわっと ---------- */
+.fade-in {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 1.2s ease, transform 1.2s ease;
+}
+
+.fade-in.is-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- カート ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(74, 64, 55, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s, visibility 0.4s;
+  z-index: 200;
+}
+
+.cart {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(420px, 100%);
+  height: 100%;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.5s ease;
+  z-index: 201;
+}
+
+.is-cart-open .overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+.is-cart-open .cart {
+  transform: translateX(0);
+}
+
+.cart__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 1px solid var(--color-beige);
+}
+
+.cart__head h2 {
+  font-weight: 400;
+  font-style: italic;
+  font-size: 28px;
+}
+
+.cart__close {
+  background: none;
+  border: none;
+  font-size: 18px;
+}
+
+.cart__list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 0 24px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-beige);
+}
+
+.cart-item__thumb {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.cart-item__thumb span {
+  display: none; /* 小さいので仮の文字は消す */
+}
+
+.cart-item__info {
+  flex-grow: 1;
+  font-family: var(--font-ja);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.cart-item__price {
+  color: var(--color-sub);
+  font-size: 13px;
+}
+
+.qty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qty button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-sand);
+  border-radius: 50%;
+  background: none;
+  line-height: 1;
+}
+
+.cart__empty {
+  padding: 48px 24px;
+  text-align: center;
+  font-family: var(--font-ja);
+  color: var(--color-sub);
+}
+
+.cart__foot {
+  padding: 24px;
+  border-top: 1px solid var(--color-beige);
+}
+
+.cart__total {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-family: var(--font-ja);
+  font-size: 18px;
+}
+
+.cart__order {
+  width: 100%;
+}
+
+/* スマホ用カートバー（PCでは隠す） */
+.cart-bar {
+  display: none;
+}
+
+/* ---------- 注文完了 ---------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(74, 64, 55, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s, visibility 0.4s;
+  z-index: 300;
+}
+
+.modal.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal__box {
+  width: min(380px, 100%);
+  padding: 48px 28px;
+  background: var(--color-bg);
+  text-align: center;
+  font-family: var(--font-ja);
+  /* 上の部分だけ夕焼けのグラデーション */
+  border-top: 6px solid var(--color-sunset);
+}
+
+.modal__en {
+  font-family: var(--font-en);
+  font-style: italic;
+  font-size: 32px;
+  color: var(--color-sunset);
+}
+
+.modal__box h2 {
+  font-weight: 400;
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+
+.modal__number {
+  font-family: var(--font-en);
+  font-size: 64px;
+  line-height: 1.2;
+}
+
+.modal__time {
+  margin-bottom: 28px;
+  font-size: 13px;
+  color: var(--color-sub);
+}
+
+/* ---------- スマホ（768px以下） ---------- */
+@media (max-width: 768px) {
+  .header {
+    height: 60px;
+  }
+
+  .header__nav {
+    display: none;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 90px;
+  }
+
+  .hero__collage {
+    order: -1; /* スマホではコラージュを先に表示 */
+  }
+
+  .section {
+    padding: 96px var(--side);
+  }
+
+  .concept,
+  .shop {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .concept__vertical {
+    writing-mode: horizontal-tb; /* スマホでは横書きに戻す */
+    letter-spacing: 0.15em;
+    font-size: 18px;
+  }
+
+  .menu__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px 16px;
+  }
+
+  .menu-card__foot {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .cart-bar {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border: none;
+    background: var(--color-text);
+    color: var(--color-bg);
+    font-size: 16px;
+    z-index: 150;
+  }
+}
+
+/* 動きを減らす設定の人向け */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .fade-in {
+    opacity: 1;
+    transform: none;
+  }
+}
