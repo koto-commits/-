@@ -6,8 +6,8 @@
 
 /* ---------- 変数（ここを変えるとサイト全体が変わる） ---------- */
 :root {
-  --color-bg: #0e0e0e;      /* 背景色 */
-  --color-text: #f5f5f5;    /* 文字色 */
+  --color-bg: #ffffff;      /* 背景色 */
+  --color-text: #111111;    /* 文字色 */
   --color-sub: #8a8a8a;     /* 薄い文字色 */
   --font-en: "Inter", sans-serif;
   --font-ja: "Noto Sans JP", sans-serif;
@@ -83,8 +83,8 @@ ul {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: rgba(255, 255, 255, 0.85); /* 半透明の白（スクロールしても文字と重ならない） */
   z-index: 100;
-  mix-blend-mode: difference;
 }
 
 .header__logo {
@@ -107,7 +107,7 @@ ul {
   left: 8px;
   width: 24px;
   height: 2px;
-  background: #fff;
+  background: var(--color-text);
   transition: transform 0.4s;
 }
 .header__menu-btn span:nth-child(1) { top: 15px; }
@@ -125,7 +125,7 @@ ul {
 .menu {
   position: fixed;
   inset: 0; /* top/right/bottom/left をすべて0にする書き方 */
-  background: #1a1a1a;
+  background: #f2f2f2;
   display: flex;
   align-items: center;
   padding: 0 var(--side);
@@ -163,52 +163,14 @@ ul {
   overflow: hidden;
 }
 
-/* 背景の「にじむ」グラデーション：丸を大きくぼかして動かしているだけ */
 .hero__bg {
   position: absolute;
   inset: 0;
-  filter: blur(80px);
   z-index: -1;
 }
 
-.blob {
+.rect {
   position: absolute;
-  border-radius: 50%;
-  opacity: 0.7;
-  animation: float 12s ease-in-out infinite alternate;
-}
-
-.blob--1 {
-  width: 50vw;
-  height: 50vw;
-  background: #ff4d6d;
-  top: -10%;
-  left: -10%;
-}
-
-.blob--2 {
-  width: 40vw;
-  height: 40vw;
-  background: #4d7cff;
-  bottom: -10%;
-  right: -5%;
-  animation-duration: 15s;
-}
-
-.blob--3 {
-  width: 30vw;
-  height: 30vw;
-  background: #ffc94d;
-  top: 30%;
-  left: 40%;
-  animation-duration: 18s;
-}
-
-/* @keyframes = アニメーションの動き方を決める */
-@keyframes float {
-  0%   { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(10vw, 5vh) scale(1.2); }
-  100% { transform: translate(-5vw, 10vh) scale(0.9); }
 }
 
 .hero__title {
@@ -305,17 +267,25 @@ ul {
   font-weight: 600;
 }
 
+/* 制作日（小さく・薄く） */
+.work-card__date {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--color-sub);
+}
+
 /* ---------- News ---------- */
 .news__list li {
   display: flex;
   gap: 32px;
   padding: 24px 0;
-  border-top: 1px solid #333;
+  border-top: 1px solid #ddd;
   font-family: var(--font-ja);
 }
 
 .news__list li:last-child {
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #ddd;
 }
 
 .news__list time {
@@ -331,7 +301,7 @@ ul {
 /* ---------- フッター ---------- */
 .footer {
   padding: 160px var(--side) 40px;
-  border-top: 1px solid #333;
+  border-top: 1px solid #ddd;
 }
 
 .footer__catch {
