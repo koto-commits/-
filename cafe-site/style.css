@@ -1,0 +1,546 @@
+/* =========================================================
+   Café KUMO style.css
+   ・色は :root にまとめてあるので、ここを変えると雰囲気が変わる
+   ========================================================= */
+
+:root {
+  --color-bg: #fbfaf7;       /* 背景（少しあたたかい白） */
+  --color-text: #3a3a3a;     /* 文字 */
+  --color-sub: #9a9a9a;      /* 薄い文字 */
+  --color-main: #7fb3e6;     /* メインカラー（空色） */
+  --color-accent: #f5b971;   /* アクセント（夕焼け色） */
+  --color-card: #ffffff;     /* カードの背景 */
+  --radius: 16px;            /* 角の丸さ */
+  --font-en: "Quicksand", sans-serif;
+  --font-ja: "Zen Maru Gothic", sans-serif;
+  --side: clamp(20px, 5vw, 80px);
+}
+
+/* ---------- リセット ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* ページ内リンクで飛んだときにヘッダーに隠れないように */
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-en), var(--font-ja);
+  line-height: 1.8;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ---------- 共通のボタン ---------- */
+.btn {
+  display: inline-block;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 999px; /* 大きい数字にすると丸いボタンになる */
+  background: var(--color-main);
+  color: #fff;
+  font-weight: 700;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.btn:hover {
+  opacity: 0.85;
+  transform: translateY(-2px);
+}
+
+.btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 画像が用意できるまでの仮の四角 */
+.img-placeholder {
+  display: grid;
+  place-items: center; /* 中の文字を上下左右の真ん中に */
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 14px;
+}
+
+/* ---------- ヘッダー ---------- */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  padding: 0 var(--side);
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  background: rgba(251, 250, 247, 0.9);
+  z-index: 100;
+}
+
+.header__logo {
+  font-size: 22px;
+  font-weight: 600;
+  margin-right: auto; /* ロゴ以外を右に寄せる */
+}
+
+.header__nav {
+  display: flex;
+  gap: 24px;
+}
+
+.header__nav a:hover {
+  color: var(--color-main);
+}
+
+.cart-btn {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 22px;
+}
+
+/* カートの数のバッジ */
+.cart-btn__count {
+  position: absolute;
+  top: -4px;
+  right: -10px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+/* ---------- トップ ---------- */
+.hero {
+  height: 100vh;
+  min-height: 560px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  /* 画像ができたら → background: url(images/hero.jpg) center / cover; */
+  background: linear-gradient(180deg, #bfe0ff 0%, #fdf1e3 100%);
+}
+
+.hero__en {
+  font-size: 18px;
+  letter-spacing: 0.2em;
+}
+
+.hero__title {
+  font-size: clamp(48px, 10vw, 120px);
+  font-weight: 600;
+  line-height: 1.1;
+  color: #fff;
+  text-shadow: 0 4px 24px rgba(127, 179, 230, 0.6);
+}
+
+.hero__sub {
+  margin: 16px 0 40px;
+  font-family: var(--font-ja);
+}
+
+/* ---------- セクション共通 ---------- */
+.section {
+  padding: 120px var(--side);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section__title {
+  font-family: var(--font-ja);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-sub);
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.section__title span {
+  display: block;
+  font-family: var(--font-en);
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* ---------- コンセプト ---------- */
+.concept__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 左右に半分ずつ */
+  gap: 48px;
+  align-items: center;
+}
+
+.concept__img {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+}
+
+.concept__text {
+  font-family: var(--font-ja);
+}
+
+/* ---------- メニュー ---------- */
+.menu__tabs {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.tab {
+  padding: 8px 20px;
+  border: 1px solid var(--color-main);
+  border-radius: 999px;
+  background: none;
+  color: var(--color-main);
+  font-family: var(--font-ja);
+}
+
+.tab.is-active {
+  background: var(--color-main);
+  color: #fff;
+}
+
+.menu__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.menu-card {
+  background: var(--color-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-card__img {
+  aspect-ratio: 1 / 1;
+  font-size: 64px; /* 仮の絵文字の大きさ */
+  color: #000;     /* 絵文字が薄くならないように */
+}
+
+.menu-card__body {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.menu-card__name {
+  font-family: var(--font-ja);
+  font-size: 18px;
+}
+
+.menu-card__desc {
+  font-family: var(--font-ja);
+  font-size: 13px;
+  color: var(--color-sub);
+  flex-grow: 1; /* 説明文の長さが違ってもボタンの位置をそろえる */
+}
+
+.menu-card__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.menu-card__price {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.add-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #fff;
+  font-family: var(--font-ja);
+  font-size: 14px;
+}
+
+.add-btn:hover {
+  opacity: 0.85;
+}
+
+/* ---------- 店舗情報 ---------- */
+.shop__info {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  max-width: 640px;
+  margin: 0 auto;
+  font-family: var(--font-ja);
+}
+
+.shop__info dt,
+.shop__info dd {
+  padding: 16px 0;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.shop__info dt {
+  color: var(--color-sub);
+}
+
+/* ---------- フッター ---------- */
+.footer {
+  padding: 40px var(--side) 100px;
+  text-align: center;
+  color: var(--color-sub);
+}
+
+/* ---------- カート（右から出てくるパネル） ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 200;
+}
+
+.cart {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(400px, 100%);
+  height: 100%;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%); /* 最初は画面の外（右）にかくしておく */
+  transition: transform 0.4s ease;
+  z-index: 201;
+}
+
+/* body に .is-cart-open が付いたらカートを出す */
+.is-cart-open .overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+.is-cart-open .cart {
+  transform: translateX(0);
+}
+
+.cart__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e6e6e6;
+  font-family: var(--font-ja);
+}
+
+.cart__close {
+  background: none;
+  border: none;
+  font-size: 20px;
+}
+
+.cart__list {
+  flex-grow: 1;
+  overflow-y: auto; /* 商品が多いときはカートの中だけスクロール */
+  padding: 0 24px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #eee;
+  font-family: var(--font-ja);
+}
+
+.cart-item__emoji {
+  font-size: 32px;
+}
+
+.cart-item__info {
+  flex-grow: 1;
+}
+
+.cart-item__price {
+  font-size: 13px;
+  color: var(--color-sub);
+}
+
+.qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qty button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.cart__empty {
+  padding: 40px 24px;
+  text-align: center;
+  color: var(--color-sub);
+  font-family: var(--font-ja);
+}
+
+.cart__foot {
+  padding: 20px 24px;
+  border-top: 1px solid #e6e6e6;
+}
+
+.cart__total {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-family: var(--font-ja);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.cart__order {
+  width: 100%;
+}
+
+/* ---------- スマホ用：画面下のカートバー ---------- */
+.cart-bar {
+  display: none; /* PCでは隠す（下の @media でスマホだけ表示） */
+}
+
+/* ---------- 注文完了のポップアップ ---------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 300;
+}
+
+.modal.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal__box {
+  width: min(360px, 100%);
+  padding: 40px 24px;
+  border-radius: var(--radius);
+  background: #fff;
+  text-align: center;
+  font-family: var(--font-ja);
+}
+
+.modal__icon {
+  font-size: 48px;
+}
+
+.modal__box h2 {
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+
+.modal__number {
+  font-family: var(--font-en);
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-main);
+}
+
+.modal__time {
+  margin-bottom: 24px;
+  color: var(--color-sub);
+}
+
+/* ---------- スマホ用の調整（画面幅 768px 以下） ---------- */
+@media (max-width: 768px) {
+  .header__nav {
+    display: none; /* スマホではナビを隠してシンプルに */
+  }
+
+  .section {
+    padding: 80px var(--side);
+  }
+
+  .concept__body {
+    grid-template-columns: 1fr; /* 縦に1列 */
+  }
+
+  .menu__grid {
+    grid-template-columns: repeat(2, 1fr); /* スマホでは2列 */
+    gap: 12px;
+  }
+
+  .menu-card__body {
+    padding: 12px;
+  }
+
+  .menu-card__name {
+    font-size: 15px;
+  }
+
+  .menu-card__foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  /* 画面下に固定されるカートバー（マックやスタバのアプリっぽく） */
+  .cart-bar {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 999px;
+    background: var(--color-text);
+    color: #fff;
+    font-family: var(--font-ja);
+    font-size: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    z-index: 150;
+  }
+}

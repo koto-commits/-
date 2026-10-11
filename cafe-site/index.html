@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Café KUMO | この世に存在しないカフェ</title>
+
+  <!-- Google Fonts（英字：Quicksand / 日本語：Zen Maru Gothic） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===================== ヘッダー ===================== -->
+  <header class="header">
+    <a href="#" class="header__logo">Café KUMO</a>
+
+    <nav class="header__nav">
+      <a href="#concept">Concept</a>
+      <a href="#menu">Menu</a>
+      <a href="#shop">Shop</a>
+    </nav>
+
+    <!-- カートボタン（右上の数字は JS で変わる） -->
+    <button class="cart-btn" aria-label="カートを開く">
+      🛒 <span class="cart-btn__count">0</span>
+    </button>
+  </header>
+
+  <main>
+    <!-- ===================== トップ（ファーストビュー） ===================== -->
+    <section class="hero">
+      <!-- 画像ができたら、style.css の .hero の background を画像に変える -->
+      <div class="hero__inner">
+        <p class="hero__en">Welcome to</p>
+        <h1 class="hero__title">Café KUMO</h1>
+        <p class="hero__sub">雲の上にある、この世に存在しないカフェ</p>
+        <a href="#menu" class="btn">モバイルオーダーで注文する</a>
+      </div>
+    </section>
+
+    <!-- ===================== コンセプト ===================== -->
+    <section class="section concept" id="concept">
+      <h2 class="section__title">
+        <span>Concept</span>
+        コンセプト
+      </h2>
+      <div class="concept__body">
+        <div class="concept__img img-placeholder" style="--c1:#cfe8ff; --c2:#fff3d6;">店内の画像</div>
+        <p class="concept__text">
+          ここにカフェの設定を書きます。<br>
+          どこにあるの？ だれがやってるの？ どんな人が来るの？<br>
+          「この世に存在しない」からこそ、自由に考えてOK。
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== メニュー ===================== -->
+    <section class="section menu" id="menu">
+      <h2 class="section__title">
+        <span>Menu</span>
+        メニュー
+      </h2>
+
+      <!-- カテゴリの切り替えボタン（data-category の値で絞り込む） -->
+      <div class="menu__tabs">
+        <button class="tab is-active" data-category="all">すべて</button>
+        <button class="tab" data-category="drink">ドリンク</button>
+        <button class="tab" data-category="food">フード</button>
+        <button class="tab" data-category="sweets">スイーツ</button>
+      </div>
+
+      <!-- ここに JS でメニューカードが並ぶ（中身は script.js の menuItems） -->
+      <div class="menu__grid"></div>
+    </section>
+
+    <!-- ===================== 店舗情報 ===================== -->
+    <section class="section shop" id="shop">
+      <h2 class="section__title">
+        <span>Shop</span>
+        店舗情報
+      </h2>
+      <dl class="shop__info">
+        <dt>住所</dt>
+        <dd>空の上 3丁目 ふわふわ雲 7番地（架空）</dd>
+        <dt>営業時間</dt>
+        <dd>晴れの日 9:00〜18:00 ／ 雨の日はお休み</dd>
+        <dt>アクセス</dt>
+        <dd>虹の橋から徒歩5分</dd>
+      </dl>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>&copy; 2026 Café KUMO (practice / fictional)</small>
+  </footer>
+
+  <!-- ===================== カート（右から出てくるパネル） ===================== -->
+  <div class="overlay"></div>
+  <aside class="cart">
+    <div class="cart__head">
+      <h2>カート</h2>
+      <button class="cart__close" aria-label="カートを閉じる">✕</button>
+    </div>
+
+    <!-- 選んだ商品が JS でここに並ぶ -->
+    <ul class="cart__list"></ul>
+    <p class="cart__empty">まだ何も入っていません</p>
+
+    <div class="cart__foot">
+      <p class="cart__total">合計 <span class="cart__total-price">¥0</span></p>
+      <button class="btn cart__order" disabled>注文する</button>
+    </div>
+  </aside>
+
+  <!-- ===================== スマホ用：画面下のカートバー ===================== -->
+  <button class="cart-bar">
+    <span>🛒 <span class="cart-bar__count">0</span>点</span>
+    <span class="cart-bar__total">¥0</span>
+    <span>カートを見る →</span>
+  </button>
+
+  <!-- ===================== 注文完了のポップアップ ===================== -->
+  <div class="modal">
+    <div class="modal__box">
+      <p class="modal__icon">☁️</p>
+      <h2>ご注文ありがとうございます！</h2>
+      <p>受け取り番号</p>
+      <p class="modal__number">000</p>
+      <p class="modal__time">準備ができるまで 約10分</p>
+      <button class="btn modal__close">メニューに戻る</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
