@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <!-- 文字化けしないための設定 -->
+  <meta charset="UTF-8">
+  <!-- スマホで正しい幅で表示するための設定 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STUDIO KOTO | 練習用サイト</title>
+
+  <!-- Google Fonts（英字：Inter / 日本語：Noto Sans JP） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- 自分で書くCSSファイルを読み込む -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===================== カスタムカーソル（JSで動かす） ===================== -->
+  <div class="cursor" aria-hidden="true"></div>
+
+  <!-- ===================== ヘッダー ===================== -->
+  <header class="header">
+    <a href="#" class="header__logo">STUDIO KOTO</a>
+
+    <!-- メニューボタン（スマホ・PC共通） -->
+    <button class="header__menu-btn" aria-label="メニューを開く">
+      <span></span>
+      <span></span>
+    </button>
+  </header>
+
+  <!-- 全画面メニュー（ボタンを押すと出てくる） -->
+  <nav class="menu">
+    <ul class="menu__list">
+      <li><a href="#works">Works</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#news">News</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <!-- ===================== ファーストビュー ===================== -->
+    <section class="hero">
+      <!-- 背景のにじむグラデーション（CSSで動かす） -->
+      <div class="hero__bg" aria-hidden="true">
+        <span class="blob blob--1"></span>
+        <span class="blob blob--2"></span>
+        <span class="blob blob--3"></span>
+      </div>
+
+      <h1 class="hero__title">
+        <span>Make</span>
+        <span>things</span>
+        <span>different.</span>
+      </h1>
+      <p class="hero__sub">ちがいを、かたちにするクリエイティブスタジオ（練習用ダミー）</p>
+      <p class="hero__scroll">Scroll ↓</p>
+    </section>
+
+    <!-- ===================== About ===================== -->
+    <section class="section about" id="about">
+      <h2 class="section__title fade-in">About</h2>
+      <p class="about__lead fade-in">
+        ここには会社やチームの紹介文が入ります。<br>
+        練習なので、文章は自分で考えたダミーでOK。<br>
+        大きな文字と広い余白で「かっこよさ」を出すのがポイントです。
+      </p>
+    </section>
+
+    <!-- ===================== Works（実績一覧） ===================== -->
+    <section class="section works" id="works">
+      <h2 class="section__title fade-in">Works</h2>
+
+      <!-- カードを並べる。画像は images フォルダに入れて差し替えてね -->
+      <div class="works__grid">
+        <a href="#" class="work-card fade-in">
+          <div class="work-card__img" style="--c1:#ff6b6b; --c2:#ffd93d;"></div>
+          <p class="work-card__cat">Branding</p>
+          <h3 class="work-card__title">Project One</h3>
+        </a>
+        <a href="#" class="work-card fade-in">
+          <div class="work-card__img" style="--c1:#6bcbff; --c2:#a66bff;"></div>
+          <p class="work-card__cat">Web Design</p>
+          <h3 class="work-card__title">Project Two</h3>
+        </a>
+        <a href="#" class="work-card fade-in">
+          <div class="work-card__img" style="--c1:#6bffb8; --c2:#3d7bff;"></div>
+          <p class="work-card__cat">Campaign</p>
+          <h3 class="work-card__title">Project Three</h3>
+        </a>
+        <a href="#" class="work-card fade-in">
+          <div class="work-card__img" style="--c1:#ffb86b; --c2:#ff6bd5;"></div>
+          <p class="work-card__cat">Movie</p>
+          <h3 class="work-card__title">Project Four</h3>
+        </a>
+      </div>
+    </section>
+
+    <!-- ===================== News ===================== -->
+    <section class="section news" id="news">
+      <h2 class="section__title fade-in">News</h2>
+      <ul class="news__list">
+        <li class="fade-in"><time>2026.10.01</time><a href="#">新しいサイトを作り始めました</a></li>
+        <li class="fade-in"><time>2026.09.15</time><a href="#">HTMLとCSSの勉強をスタート</a></li>
+        <li class="fade-in"><time>2026.09.01</time><a href="#">ダミーのお知らせがここに入ります</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- ===================== フッター ===================== -->
+  <footer class="footer" id="contact">
+    <p class="footer__catch">Let's talk.</p>
+    <a href="mailto:hello@example.com" class="footer__mail">hello@example.com</a>
+    <small class="footer__copy">&copy; 2026 STUDIO KOTO (practice)</small>
+  </footer>
+
+  <!-- 自分で書くJSファイル（bodyの最後で読むのが基本） -->
+  <script src="script.js"></script>
+</body>
+</html>

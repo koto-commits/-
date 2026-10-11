@@ -1,0 +1,392 @@
+/* =========================================================
+   練習用サイト style.css
+   ・上から「共通設定 → パーツごと」の順に書いています
+   ・色やサイズは :root の変数にまとめておくと変更がラク！
+   ========================================================= */
+
+/* ---------- 変数（ここを変えるとサイト全体が変わる） ---------- */
+:root {
+  --color-bg: #0e0e0e;      /* 背景色 */
+  --color-text: #f5f5f5;    /* 文字色 */
+  --color-sub: #8a8a8a;     /* 薄い文字色 */
+  --font-en: "Inter", sans-serif;
+  --font-ja: "Noto Sans JP", sans-serif;
+  --side: clamp(20px, 5vw, 80px); /* 左右の余白（画面幅に合わせて変化） */
+}
+
+/* ---------- リセット（ブラウザごとの差をなくす） ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth; /* ページ内リンクをなめらかにスクロール */
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-en), var(--font-ja);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+/* ---------- カスタムカーソル ---------- */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  pointer-events: none;        /* カーソルがクリックの邪魔をしないように */
+  mix-blend-mode: difference;  /* 下の色と反転して見える */
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+  z-index: 1000;
+}
+
+/* リンクに乗ったときに大きくする（JSでクラスを付ける） */
+.cursor.is-hover {
+  width: 60px;
+  height: 60px;
+}
+
+/* スマホ（マウスがない端末）ではカーソルを消す */
+@media (hover: none) {
+  .cursor {
+    display: none;
+  }
+}
+
+/* ---------- ヘッダー ---------- */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 24px var(--side);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  mix-blend-mode: difference;
+}
+
+.header__logo {
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.header__menu-btn {
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+}
+
+/* 2本線のハンバーガーボタン */
+.header__menu-btn span {
+  position: absolute;
+  left: 8px;
+  width: 24px;
+  height: 2px;
+  background: #fff;
+  transition: transform 0.4s;
+}
+.header__menu-btn span:nth-child(1) { top: 15px; }
+.header__menu-btn span:nth-child(2) { top: 23px; }
+
+/* メニューが開いているとき（bodyに .is-menu-open が付く）は × にする */
+.is-menu-open .header__menu-btn span:nth-child(1) {
+  transform: translateY(4px) rotate(45deg);
+}
+.is-menu-open .header__menu-btn span:nth-child(2) {
+  transform: translateY(-4px) rotate(-45deg);
+}
+
+/* ---------- 全画面メニュー ---------- */
+.menu {
+  position: fixed;
+  inset: 0; /* top/right/bottom/left をすべて0にする書き方 */
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--side);
+  z-index: 90;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s, visibility 0.5s;
+}
+
+.is-menu-open .menu {
+  opacity: 1;
+  visibility: visible;
+}
+
+.menu__list a {
+  font-size: clamp(40px, 8vw, 96px);
+  font-weight: 800;
+  line-height: 1.2;
+  transition: color 0.3s;
+}
+
+.menu__list a:hover {
+  color: var(--color-sub);
+}
+
+/* ---------- ファーストビュー ---------- */
+.hero {
+  position: relative;
+  height: 100vh;
+  min-height: 600px;
+  padding: 0 var(--side);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 背景の「にじむ」グラデーション：丸を大きくぼかして動かしているだけ */
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  filter: blur(80px);
+  z-index: -1;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: float 12s ease-in-out infinite alternate;
+}
+
+.blob--1 {
+  width: 50vw;
+  height: 50vw;
+  background: #ff4d6d;
+  top: -10%;
+  left: -10%;
+}
+
+.blob--2 {
+  width: 40vw;
+  height: 40vw;
+  background: #4d7cff;
+  bottom: -10%;
+  right: -5%;
+  animation-duration: 15s;
+}
+
+.blob--3 {
+  width: 30vw;
+  height: 30vw;
+  background: #ffc94d;
+  top: 30%;
+  left: 40%;
+  animation-duration: 18s;
+}
+
+/* @keyframes = アニメーションの動き方を決める */
+@keyframes float {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(10vw, 5vh) scale(1.2); }
+  100% { transform: translate(-5vw, 10vh) scale(0.9); }
+}
+
+.hero__title {
+  font-size: clamp(56px, 13vw, 200px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+/* 1行ずつ下から出てくるアニメーション */
+.hero__title span {
+  display: block;
+  animation: slide-up 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.hero__title span:nth-child(2) { animation-delay: 0.15s; }
+.hero__title span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero__sub {
+  margin-top: 32px;
+  font-family: var(--font-ja);
+  font-size: 14px;
+}
+
+.hero__scroll {
+  position: absolute;
+  bottom: 32px;
+  left: var(--side);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+}
+
+/* ---------- セクション共通 ---------- */
+.section {
+  padding: 160px var(--side);
+}
+
+.section__title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-sub);
+  margin-bottom: 48px;
+}
+
+/* ---------- About ---------- */
+.about__lead {
+  font-family: var(--font-ja);
+  font-size: clamp(20px, 3vw, 36px);
+  font-weight: 700;
+  line-height: 1.8;
+  max-width: 1000px;
+}
+
+/* ---------- Works ---------- */
+/* grid = カードを格子状に並べる。auto-fill で画面幅に合わせて列数が変わる */
+.works__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 48px 32px;
+}
+
+.work-card__img {
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  /* 画像の代わりにグラデーション。本番は background-image: url(...) に */
+  background: linear-gradient(135deg, var(--c1), var(--c2));
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.work-card:hover .work-card__img {
+  transform: scale(0.96);
+}
+
+.work-card__cat {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--color-sub);
+}
+
+.work-card__title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* ---------- News ---------- */
+.news__list li {
+  display: flex;
+  gap: 32px;
+  padding: 24px 0;
+  border-top: 1px solid #333;
+  font-family: var(--font-ja);
+}
+
+.news__list li:last-child {
+  border-bottom: 1px solid #333;
+}
+
+.news__list time {
+  color: var(--color-sub);
+  font-family: var(--font-en);
+  flex-shrink: 0;
+}
+
+.news__list a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- フッター ---------- */
+.footer {
+  padding: 160px var(--side) 40px;
+  border-top: 1px solid #333;
+}
+
+.footer__catch {
+  font-size: clamp(48px, 10vw, 160px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.footer__mail {
+  display: inline-block;
+  margin-top: 24px;
+  font-size: clamp(18px, 2.5vw, 28px);
+  border-bottom: 1px solid currentColor;
+}
+
+.footer__copy {
+  display: block;
+  margin-top: 120px;
+  color: var(--color-sub);
+}
+
+/* ---------- スクロールでふわっと出る（JSで .is-show を付ける） ---------- */
+.fade-in {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 1s, transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.fade-in.is-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- スマホ用の調整（画面幅 600px 以下） ---------- */
+@media (max-width: 600px) {
+  .section {
+    padding: 100px var(--side);
+  }
+
+  .news__list li {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+/* 「動きを減らす」設定の人にはアニメーションを止める（やさしさ設定） */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .fade-in {
+    opacity: 1;
+    transform: none;
+  }
+}
