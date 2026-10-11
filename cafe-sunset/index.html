@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Shippori+Mincho:wght@400;600&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="checkout.css">
 </head>
 <body>
 
@@ -129,18 +130,114 @@
     <span>View Order →</span>
   </button>
 
-  <!-- ===================== 注文完了 ===================== -->
-  <div class="modal">
-    <div class="modal__box">
-      <p class="modal__en">Thank you</p>
-      <h2>ご注文を承りました</h2>
-      <p>受け取り番号</p>
-      <p class="modal__number">000</p>
-      <p class="modal__time">夕陽を眺めながら、少々お待ちください。</p>
-      <button class="btn modal__close">メニューに戻る</button>
+  <!-- ===================== 注文〜お支払い（checkout.js で動く） ===================== -->
+  <div class="checkout">
+    <div class="checkout__box">
+      <div class="checkout__head">
+        <p class="checkout__steps">
+          <span data-step-label="1">Pickup</span> —
+          <span data-step-label="2">Payment</span> —
+          <span data-step-label="3">Done</span>
+        </p>
+        <button class="checkout__close" aria-label="閉じる">✕</button>
+      </div>
+      <p class="checkout__demo">
+        これは練習用のデモです。実際の決済は行われません。<br>
+        本物のカード情報は入力しないでください（テスト用のカード番号のみ使えます）。
+      </p>
+
+      <!-- ステップ1：受け取り方法 -->
+      <section class="checkout__step" data-step="1">
+        <h2>受け取り方法</h2>
+        <div class="choice">
+          <label><input type="radio" name="dining" value="eatin" checked> 店内でお召し上がり <small>消費税10%</small></label>
+          <label><input type="radio" name="dining" value="takeout"> テイクアウト <small>軽減税率8%</small></label>
+        </div>
+
+        <h3>受け取り時間</h3>
+        <select class="checkout__time"></select>
+
+        <h3>お呼び出し用のお名前</h3>
+        <input type="text" class="checkout__nickname" placeholder="例：ゆうぐれ" maxlength="12">
+
+        <p class="checkout__error" data-error="1"></p>
+        <button class="btn checkout__next">お支払いへ進む</button>
+      </section>
+
+      <!-- ステップ2：お支払い -->
+      <section class="checkout__step" data-step="2" hidden>
+        <h2>お支払い方法</h2>
+        <div class="choice">
+          <label><input type="radio" name="pay" value="card" checked> クレジットカード</label>
+          <label><input type="radio" name="pay" value="qr"> QRコード決済</label>
+          <label><input type="radio" name="pay" value="store"> 店頭でお支払い</label>
+        </div>
+
+        <!-- カード -->
+        <div class="pay-panel" data-pay="card">
+          <button type="button" class="checkout__fill">テストカードを入力する</button>
+          <label class="field">カード番号 <span class="card-brand"></span>
+            <input type="text" class="card-number" inputmode="numeric" autocomplete="off" placeholder="4242 4242 4242 4242">
+          </label>
+          <div class="field-row">
+            <label class="field">有効期限
+              <input type="text" class="card-exp" inputmode="numeric" autocomplete="off" placeholder="MM / YY">
+            </label>
+            <label class="field">セキュリティコード
+              <input type="text" class="card-cvc" inputmode="numeric" autocomplete="off" placeholder="123">
+            </label>
+          </div>
+          <label class="field">カード名義
+            <input type="text" class="card-name" autocomplete="off" placeholder="TARO YAMADA">
+          </label>
+          <p class="checkout__hint">
+            テストカード：4242 4242 4242 4242（成功）／ 4000 0000 0000 0002（カード拒否）<br>
+            有効期限は未来の日付、セキュリティコードは3けたなら何でもOK
+          </p>
+        </div>
+
+        <!-- QRコード -->
+        <div class="pay-panel" data-pay="qr" hidden>
+          <div class="qr"></div>
+          <p>デモ用のQRコードです（読み取りはできません）</p>
+        </div>
+
+        <!-- 店頭払い -->
+        <div class="pay-panel" data-pay="store" hidden>
+          <p>受け取りの際に、レジでお支払いください。</p>
+        </div>
+
+        <!-- 注文内容 -->
+        <div class="summary">
+          <ul class="summary__items"></ul>
+          <p class="summary__row"><span>合計</span><span class="summary__total">¥0</span></p>
+          <p class="summary__tax"></p>
+        </div>
+
+        <p class="checkout__error" data-error="2"></p>
+        <div class="checkout__nav">
+          <button class="checkout__back">← 戻る</button>
+          <button class="btn checkout__pay">支払う</button>
+        </div>
+      </section>
+
+      <!-- 決済処理中 -->
+      <section class="checkout__step" data-step="processing" hidden>
+        <div class="spinner"></div>
+        <p>決済処理中です…</p>
+      </section>
+
+      <!-- ステップ3：完了（レシート） -->
+      <section class="checkout__step" data-step="3" hidden>
+        <p class="receipt__en">Thank you</p>
+        <h2>ご注文を承りました</h2>
+        <div class="receipt"></div>
+        <button class="btn checkout__done">メニューに戻る</button>
+      </section>
     </div>
   </div>
 
   <script src="script.js"></script>
+  <script src="checkout.js"></script>
 </body>
 </html>

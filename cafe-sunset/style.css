@@ -592,60 +592,6 @@ button {
   display: none;
 }
 
-/* ---------- 注文完了 ---------- */
-.modal {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  background: rgba(74, 64, 55, 0.4);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.4s, visibility 0.4s;
-  z-index: 300;
-}
-
-.modal.is-open {
-  opacity: 1;
-  visibility: visible;
-}
-
-.modal__box {
-  width: min(380px, 100%);
-  padding: 48px 28px;
-  background: var(--color-bg);
-  text-align: center;
-  font-family: var(--font-ja);
-  /* 上の部分だけ夕焼けのグラデーション */
-  border-top: 6px solid var(--color-sunset);
-}
-
-.modal__en {
-  font-family: var(--font-en);
-  font-style: italic;
-  font-size: 32px;
-  color: var(--color-sunset);
-}
-
-.modal__box h2 {
-  font-weight: 400;
-  font-size: 18px;
-  margin-bottom: 24px;
-}
-
-.modal__number {
-  font-family: var(--font-en);
-  font-size: 64px;
-  line-height: 1.2;
-}
-
-.modal__time {
-  margin-bottom: 28px;
-  font-size: 13px;
-  color: var(--color-sub);
-}
-
 /* ---------- スマホ（768px以下） ---------- */
 @media (max-width: 768px) {
   .header {

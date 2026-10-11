@@ -18,13 +18,33 @@ const menuItems = [
   { id: 8, name: "大理石のチーズケーキ", en: "Marble Cheesecake",    price: 620, category: "sweets", desc: "白いテーブルみたいな、なめらかさ。",   image: "", ph: "ph-marble" },
 ];
 
-let cart = []; // { id: 商品番号, qty: 個数 }
+// カートの中身 { id: 商品番号, qty: 個数 }。保存されていれば読み込む
+let cart = loadCart();
 
 const menuGrid = document.querySelector(".menu__grid");
 const cartList = document.querySelector(".cart__list");
 const cartEmpty = document.querySelector(".cart__empty");
 const orderBtn = document.querySelector(".cart__order");
-const modal = document.querySelector(".modal");
+
+// ---------- カートの保存・読み込み（localStorage） ----------
+// localStorage = ブラウザの中にデータを保存できる場所。再読み込みしても消えない
+function saveCart() {
+  try {
+    localStorage.setItem("cafe-cart", JSON.stringify(cart));
+  } catch (e) {
+    // 保存できない環境（プライベートモードなど）では何もしない
+  }
+}
+
+function loadCart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("cafe-cart")) || [];
+    // メニューから消えた商品などは取りのぞく
+    return saved.filter((c) => findItem(c.id) && c.qty > 0);
+  } catch (e) {
+    return [];
+  }
+}
 
 // 値段を「¥1,234」の形にする
 function yen(price) {
@@ -132,6 +152,8 @@ function renderCart() {
 
   cartEmpty.style.display = cart.length === 0 ? "block" : "none";
   orderBtn.disabled = cart.length === 0;
+
+  saveCart(); // カートが変わるたびに保存
 }
 
 // ---------- 6. 個数の ＋ / − ----------
@@ -162,20 +184,10 @@ document.querySelector(".cart-bar").addEventListener("click", openCart);
 document.querySelector(".cart__close").addEventListener("click", closeCart);
 document.querySelector(".overlay").addEventListener("click", closeCart);
 
-// ---------- 8. 注文する（レベル1：見た目だけ） ----------
+// ---------- 8. 注文する → お支払い画面へ（中身は checkout.js） ----------
 orderBtn.addEventListener("click", () => {
-  const number = Math.floor(Math.random() * 900) + 100;
-  document.querySelector(".modal__number").textContent = number;
-
   closeCart();
-  modal.classList.add("is-open");
-
-  cart = [];
-  renderCart();
-});
-
-document.querySelector(".modal__close").addEventListener("click", () => {
-  modal.classList.remove("is-open");
+  openCheckout();
 });
 
 // ---------- 9. スクロールでふわっと表示 ----------
