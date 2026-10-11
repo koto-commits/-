@@ -1,0 +1,974 @@
+/* =========================================================
+   KONOMI style.css
+   テーマ：淡く儚い、森のナチュラル（Café Donguri より彩度低め）
+   ========================================================= */
+
+:root {
+  --bg: #f6f3ee;          /* 背景（ほんのり生成り） */
+  --paper: #fbf9f5;       /* カードの背景 */
+  --text: #5a5149;        /* 文字（淡い背景でも読める濃さ） */
+  --sub: #988f85;         /* 薄い文字 */
+  --line: #e4ddd3;        /* 線 */
+  --font-en: "Cormorant Garamond", serif;
+  --font-ja: "Zen Old Mincho", serif;
+  --side: clamp(20px, 6vw, 96px);
+
+  /* バッグの色（カラー切り替えで JS が書き換える） */
+  --bag: #e9e1d3;
+  --tint: #f1ece3;        /* 色に合わせて変わる、背景のうっすらした色 */
+}
+
+/* ---------- リセット ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-en), var(--font-ja);
+  line-height: 2;
+  letter-spacing: 0.06em;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* キーボードで操作したときに、どこにいるかわかるように */
+:focus-visible {
+  outline: 2px solid var(--sub);
+  outline-offset: 3px;
+}
+
+/* ---------- ボタン ---------- */
+.btn {
+  display: inline-block;
+  padding: 14px 44px;
+  border: 1px solid var(--text);
+  border-radius: 999px;
+  background: transparent;
+  font-family: var(--font-ja);
+  letter-spacing: 0.15em;
+  transition: background 0.5s, color 0.5s;
+}
+
+.btn:hover {
+  background: var(--text);
+  color: var(--paper);
+}
+
+.btn--small {
+  padding: 6px 20px;
+  font-size: 13px;
+}
+
+.btn--wide {
+  width: 100%;
+}
+
+/* ---------- 舞い落ちる葉っぱ ---------- */
+.leaves {
+  position: fixed;
+  inset: 0;
+  pointer-events: none; /* クリックの邪魔をしない */
+  overflow: hidden;
+  z-index: 1;
+}
+
+.leaf {
+  position: absolute;
+  top: -40px;
+  width: 14px;
+  height: 8px;
+  border-radius: 0 100% 0 100%; /* 葉っぱの形 */
+  background: var(--bag);
+  filter: brightness(0.92);
+  opacity: 0.7;
+  animation: fall linear infinite;
+}
+
+/* 上から下へ、ゆらゆら回りながら落ちる */
+@keyframes fall {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(30px, 25vh) rotate(90deg); }
+  50%  { transform: translate(-20px, 50vh) rotate(180deg); }
+  75%  { transform: translate(25px, 75vh) rotate(270deg); }
+  100% { transform: translate(0, 110vh) rotate(360deg); }
+}
+
+/* ---------- CSS で描いたバッグ ---------- */
+.bag {
+  position: relative;
+  width: min(320px, 70vw);
+  aspect-ratio: 4 / 4.6;
+  margin: 0 auto;
+  transition: transform 0.6s;
+}
+
+/* 本体：リネンっぽい細かい織り目を、うすい線の重ねで表現 */
+.bag__body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 76%;
+  border-radius: 4px 4px 14px 14px;
+  background-color: var(--bag);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.03) 0 1px, transparent 1px 4px);
+  box-shadow:
+    inset 0 -24px 40px rgba(0, 0, 0, 0.05),
+    0 40px 50px -30px rgba(90, 70, 50, 0.35);
+  transition: background-color 0.8s;
+}
+
+/* 持ち手：上だけ丸い枠線で作る */
+.bag__handle {
+  position: absolute;
+  top: 0;
+  left: 24%;
+  width: 52%;
+  height: 46%;
+  border: 12px solid var(--bag);
+  border-bottom: none;
+  border-radius: 999px 999px 0 0;
+  filter: brightness(0.94);
+  transition: border-color 0.8s;
+}
+
+.bag__handle--back {
+  top: 3%;
+  left: 30%;
+  width: 40%;
+  filter: brightness(0.86);
+}
+
+/* 小さなタグ */
+.bag__tag {
+  position: absolute;
+  right: 12%;
+  bottom: 14%;
+  padding: 2px 10px;
+  background: var(--paper);
+  font-family: var(--font-en);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--sub);
+}
+
+/* ふわふわ浮く */
+.bag--float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(-14px) rotate(1deg); }
+}
+
+/* ---------- ヘッダー ---------- */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  padding: 0 var(--side);
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  background: rgba(246, 243, 238, 0.85);
+  backdrop-filter: blur(8px); /* 後ろをすりガラスみたいにぼかす */
+  z-index: 100;
+}
+
+.header__logo {
+  font-family: var(--font-en);
+  font-size: 22px;
+  letter-spacing: 0.3em;
+  margin-right: auto;
+}
+
+.header__nav {
+  display: flex;
+  gap: 28px;
+  font-size: 16px;
+}
+
+.header__nav a {
+  color: var(--sub);
+  transition: color 0.3s;
+}
+
+.header__nav a:hover {
+  color: var(--text);
+}
+
+/* ---------- ① ファーストビュー ---------- */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  padding: 100px var(--side) 60px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 40px;
+  /* 選んだ色が、うっすら背景ににじむ */
+  background: radial-gradient(circle at 70% 50%, var(--tint) 0%, var(--bg) 60%);
+  transition: background 0.8s;
+}
+
+.hero__en {
+  font-style: italic;
+  color: var(--sub);
+}
+
+.hero__title {
+  font-family: var(--font-ja);
+  font-weight: 400;
+  font-size: clamp(34px, 5vw, 64px);
+  line-height: 1.6;
+  margin: 12px 0 20px;
+}
+
+.hero__sub {
+  font-family: var(--font-ja);
+  color: var(--sub);
+  margin-bottom: 40px;
+}
+
+/* 文字が1つずつ、ふわっと出てくる */
+.hero__text > * {
+  animation: rise 1.4s ease both;
+}
+.hero__text > :nth-child(2) { animation-delay: 0.2s; }
+.hero__text > :nth-child(3) { animation-delay: 0.4s; }
+.hero__text > :nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* ---------- セクション共通 ---------- */
+.section {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 140px var(--side);
+}
+
+.section__title {
+  font-family: var(--font-ja);
+  font-weight: 400;
+  font-size: clamp(22px, 3vw, 30px);
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.section__title span {
+  display: block;
+  font-family: var(--font-en);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--sub);
+}
+
+.section__lead {
+  font-family: var(--font-ja);
+  text-align: center;
+  color: var(--sub);
+  margin: -24px 0 48px;
+}
+
+/* ---------- スクロールでふわっと ---------- */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 1.2s ease, transform 1.2s ease;
+}
+
+.fade-in.is-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- ② こんなこと、ありませんか？ ---------- */
+.worry__list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.worry__item {
+  padding: 40px 24px;
+  border-radius: 50%; /* まるい吹き出しっぽく */
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  background: var(--paper);
+  font-family: var(--font-ja);
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+.worry__item:nth-child(2) { transition-delay: 0.2s; }
+.worry__item:nth-child(3) { transition-delay: 0.4s; }
+
+/* ---------- ③ ストーリー（スクロール連動） ---------- */
+/* 高さを画面3つ分にして、その間 .story__sticky を画面に貼りつける */
+.story {
+  --p: 0; /* スクロールの進み具合（JS が 0〜1 を入れる） */
+  position: relative;
+  z-index: 2;
+  height: 300vh;
+}
+
+.story__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 80px var(--side) 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 48px;
+}
+
+/* --p に合わせて、バッグがゆっくり回って大きくなる */
+.bag--story {
+  transform: rotate(calc(var(--p) * -10deg)) scale(calc(0.85 + var(--p) * 0.3));
+  transition: none;
+}
+
+.story__en {
+  font-style: italic;
+  color: var(--sub);
+}
+
+.story__title {
+  font-family: var(--font-ja);
+  font-weight: 400;
+  font-size: clamp(26px, 3.5vw, 40px);
+  line-height: 1.7;
+  margin: 8px 0 32px;
+}
+
+.story__points li {
+  font-family: var(--font-ja);
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  opacity: 0.15;
+  transform: translateX(20px);
+  transition: opacity 0.8s, transform 0.8s;
+}
+
+.story__points li.is-on {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.story__points span {
+  font-family: var(--font-en);
+  font-style: italic;
+  color: var(--sub);
+  margin-right: 12px;
+}
+
+/* ---------- ④ カラー切り替え ---------- */
+.colors__body {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  align-items: center;
+  gap: 48px;
+  padding: 48px;
+  border-radius: 24px;
+  background: var(--tint);
+  transition: background 0.8s;
+}
+
+.bag--big {
+  width: min(360px, 70vw);
+}
+
+.colors__name {
+  font-family: var(--font-ja);
+  font-size: 28px;
+}
+
+.colors__name span {
+  font-family: var(--font-en);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--sub);
+  margin-left: 8px;
+}
+
+.colors__desc {
+  font-family: var(--font-ja);
+  color: var(--sub);
+  margin: 8px 0 28px;
+  min-height: 4em; /* 文章の長さが変わってもガタつかないように */
+}
+
+.swatches {
+  display: flex;
+  gap: 16px;
+}
+
+.swatch {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  outline: 1px solid transparent;
+  outline-offset: 4px;
+  transition: outline-color 0.3s, transform 0.3s;
+}
+
+.swatch:hover {
+  transform: scale(1.08);
+}
+
+.swatch.is-active {
+  outline-color: var(--text);
+}
+
+/* 色見本の色（script.js の COLORS と同じ色） */
+.swatch[data-color="kinari"]    { background: #e9e1d3; }
+.swatch[data-color="haizakura"] { background: #e6d4d1; }
+.swatch[data-color="koke"]      { background: #d3d8c6; }
+.swatch[data-color="usuzumi"]   { background: #cfcdca; }
+
+/* ---------- ⑤ ビフォーアフター ---------- */
+.compare {
+  position: relative;
+  max-width: 720px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 10;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* 写真ができたら、background を url(images/〇〇.jpg) center / cover に変える */
+.compare__img {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.compare__img span {
+  font-family: var(--font-en);
+  font-style: italic;
+  font-size: 22px;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.compare__img--before {
+  background: linear-gradient(160deg, #f3efe8, #e3dace);
+}
+
+/* 1年後：少し色が深く、くったりした感じ */
+.compare__img--after {
+  background:
+    repeating-linear-gradient(80deg, rgba(0, 0, 0, 0.025) 0 2px, transparent 2px 6px),
+    linear-gradient(160deg, #e2d6c6, #c9b9a5);
+  /* 左から --pos の幅だけ見せる（clip-path で切り抜く） */
+  clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+}
+
+.compare__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--pos);
+  width: 2px;
+  background: #fff;
+  pointer-events: none;
+}
+
+/* つまみの丸 */
+.compare__line::after {
+  content: "‹ ›";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  color: var(--sub);
+  font-size: 14px;
+}
+
+/* 本物のスライダーは透明にして、画像の上全体に重ねる */
+.compare__range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: ew-resize;
+}
+
+/* ---------- ⑥ お客様の声 ---------- */
+.voices__list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.voice {
+  padding: 32px 28px;
+  background: var(--paper);
+  border-radius: 16px;
+  font-family: var(--font-ja);
+  font-size: 14px;
+}
+
+.voice span {
+  display: block;
+  margin-top: 16px;
+  color: var(--sub);
+  font-size: 13px;
+}
+
+.voice:nth-child(2) { transition-delay: 0.2s; }
+.voice:nth-child(3) { transition-delay: 0.4s; }
+
+.voices__note {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--sub);
+}
+
+/* ---------- ⑦ 購入シミュレーター ---------- */
+.order__body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: start;
+}
+
+.order__visual {
+  position: sticky;
+  top: 120px;
+  padding: 48px 0;
+  border-radius: 24px;
+  background: var(--tint);
+  transition: background 0.8s;
+}
+
+/* 名入れの文字をタグに表示するときは、少し大きく */
+.bag__tag--name {
+  text-transform: uppercase;
+}
+
+.order__form {
+  font-family: var(--font-ja);
+}
+
+fieldset {
+  border: none;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+legend {
+  font-size: 13px;
+  color: var(--sub);
+  margin-bottom: 8px;
+}
+
+.option-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ラジオボタンを、丸いボタンっぽい見た目に */
+.option-row label {
+  padding: 6px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.option-row label:has(input:checked) {
+  border-color: var(--text);
+  background: var(--tint);
+}
+
+.option-row input {
+  /* 本物のラジオボタンは見えなくして、ラベル全体をボタンにする */
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.option-row label:has(input:focus-visible) {
+  outline: 2px solid var(--sub);
+  outline-offset: 2px;
+}
+
+.qty {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.qty__btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.qty__num {
+  min-width: 1.5em;
+  text-align: center;
+  font-size: 18px;
+}
+
+.check {
+  display: block;
+  margin: 6px 0;
+  cursor: pointer;
+}
+
+.check input {
+  accent-color: var(--text);
+  margin-right: 6px;
+}
+
+.order__name {
+  width: 100%;
+  margin: 4px 0 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font: inherit;
+  font-size: 16px; /* iPhone で勝手に拡大されないように */
+}
+
+.order__name:disabled {
+  opacity: 0.4;
+}
+
+.order__hint {
+  font-size: 12px;
+  color: var(--sub);
+}
+
+/* 金額の内訳 */
+.price {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: 4px; /* 横のすき間は 0 にして、合計の上の線がつながるように */
+  margin: 24px 0 8px;
+  font-size: 14px;
+}
+
+.price dd {
+  text-align: right;
+}
+
+.price__total-label,
+.price__total {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 20px;
+}
+
+/* 割引がないときは、薄くする */
+.price .is-zero {
+  opacity: 0.35;
+}
+
+.order__submit {
+  margin-top: 20px;
+}
+
+.order__demo {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--sub);
+  text-align: center;
+}
+
+/* ---------- ⑧ FAQ ---------- */
+.faq__list {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.faq__item {
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-ja);
+}
+
+.faq__item summary {
+  padding: 20px 0;
+  cursor: pointer;
+  list-style: none; /* 標準の▶マークを消す */
+  display: flex;
+  justify-content: space-between;
+}
+
+.faq__item summary::-webkit-details-marker {
+  display: none;
+}
+
+/* 右側の ＋ マーク。開いたら × に回転 */
+.faq__item summary::after {
+  content: "+";
+  font-family: var(--font-en);
+  font-size: 22px;
+  line-height: 1;
+  transition: transform 0.4s;
+}
+
+.faq__item[open] summary::after {
+  transform: rotate(45deg);
+}
+
+.faq__item p {
+  padding: 0 0 20px;
+  color: var(--sub);
+  font-size: 14px;
+}
+
+/* ---------- ⑨ 最後のひと押し ---------- */
+.final {
+  position: relative;
+  z-index: 2;
+  padding: 160px var(--side);
+  text-align: center;
+  background: linear-gradient(180deg, var(--bg), var(--tint));
+  transition: background 0.8s;
+}
+
+.final__text {
+  font-family: var(--font-ja);
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 2;
+  margin-bottom: 40px;
+}
+
+/* ---------- フッター ---------- */
+.footer {
+  position: relative;
+  z-index: 2;
+  padding: 60px var(--side) 120px;
+  text-align: center;
+  background: var(--tint);
+  color: var(--sub);
+  font-size: 13px;
+}
+
+.footer__logo {
+  font-family: var(--font-en);
+  font-size: 24px;
+  letter-spacing: 0.3em;
+  color: var(--text);
+}
+
+.footer__link a {
+  border-bottom: 1px solid currentColor;
+}
+
+/* ---------- スマホ用：追従する購入ボタン ---------- */
+.sticky-cta {
+  display: none;
+}
+
+/* ---------- カートに入れたときのお知らせ ---------- */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  translate: -50% 20px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--paper);
+  font-family: var(--font-ja);
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s, translate 0.4s;
+  z-index: 300;
+}
+
+.toast.is-show {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+/* ---------- スマホ（768px以下） ---------- */
+@media (max-width: 768px) {
+  .header__nav {
+    display: none;
+  }
+
+  .hero,
+  .story__sticky,
+  .colors__body,
+  .order__body {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    text-align: center;
+    padding-top: 90px;
+  }
+
+  .hero__visual {
+    order: -1; /* スマホではバッグを先に */
+  }
+
+  .section {
+    padding: 96px var(--side);
+  }
+
+  .worry__list,
+  .voices__list {
+    grid-template-columns: 1fr;
+  }
+
+  .worry__item {
+    aspect-ratio: auto;
+    border-radius: 999px;
+    padding: 24px;
+  }
+
+  .story__sticky {
+    gap: 16px;
+    padding-top: 72px;
+  }
+
+  .story__visual .bag {
+    width: min(200px, 50vw);
+  }
+
+  .story__title {
+    margin-bottom: 12px;
+  }
+
+  .story__points li {
+    padding: 10px 0;
+    font-size: 14px;
+  }
+
+  .colors__body {
+    padding: 32px 20px;
+    text-align: center;
+  }
+
+  .swatches {
+    justify-content: center;
+  }
+
+  .order__visual {
+    position: static;
+    padding: 32px 0;
+  }
+
+  .order__visual .bag {
+    width: min(200px, 50vw);
+  }
+
+  /* 画面下に追従する購入ボタン（JS で .is-show が付いたときだけ出る） */
+  .sticky-cta {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 10px 10px 20px;
+    border-radius: 999px;
+    background: rgba(251, 249, 245, 0.95);
+    box-shadow: 0 8px 30px rgba(90, 70, 50, 0.15);
+    font-family: var(--font-ja);
+    font-size: 13px;
+    z-index: 150;
+    translate: 0 150%;
+    transition: translate 0.5s;
+  }
+
+  .sticky-cta.is-show {
+    translate: 0 0;
+  }
+
+  .sticky-cta__btn {
+    padding: 8px 20px;
+    border-radius: 999px;
+    background: var(--text);
+    color: var(--paper);
+  }
+}
+
+/* 動きを減らす設定の人向け：アニメーションを止める */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .fade-in,
+  .story__points li {
+    opacity: 1;
+    transform: none;
+  }
+  .leaves {
+    display: none;
+  }
+}

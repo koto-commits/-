@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KONOMI | どんぐり染めのリネントート</title>
+  <meta name="description" content="森の工房でひとつずつ染めた、どんぐり染めのリネントートバッグ（架空ブランド・練習作品）">
+
+  <!-- Google Fonts（英字：Cormorant Garamond / 日本語：Zen Old Mincho） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Zen+Old+Mincho:wght@400;600&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===================== 舞い落ちる葉っぱ（JS で作る） ===================== -->
+  <div class="leaves" aria-hidden="true"></div>
+
+  <!-- ===================== ヘッダー ===================== -->
+  <header class="header">
+    <a href="#" class="header__logo">KONOMI</a>
+    <nav class="header__nav">
+      <a href="#story">Story</a>
+      <a href="#colors">Colors</a>
+      <a href="#aging">Aging</a>
+      <a href="#order">Order</a>
+    </nav>
+    <a href="#order" class="btn btn--small">購入する</a>
+  </header>
+
+  <main>
+    <!-- ===================== ① ファーストビュー ===================== -->
+    <section class="hero">
+      <div class="hero__text">
+        <p class="hero__en">acorn-dyed linen tote</p>
+        <h1 class="hero__title">森のいろを、<br>まいにちに。</h1>
+        <p class="hero__sub">どんぐりで染めた、淡くやさしいリネンのトートバッグ。</p>
+        <a href="#order" class="btn">色をえらぶ</a>
+      </div>
+
+      <!-- CSS で描いたバッグ（色は --bag で変わる）。写真ができたら差し替えてもOK -->
+      <div class="hero__visual">
+        <div class="bag bag--float" aria-label="KONOMI のトートバッグ">
+          <span class="bag__handle bag__handle--back"></span>
+          <span class="bag__handle"></span>
+          <span class="bag__body"><span class="bag__tag">KONOMI</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ② こんなこと、ありませんか？ ===================== -->
+    <section class="section worry">
+      <h2 class="section__title fade-in"><span>Worry</span>こんなこと、ありませんか？</h2>
+      <ul class="worry__list">
+        <li class="worry__item fade-in">ナチュラルな服に合う、<br>やさしい色のバッグが見つからない</li>
+        <li class="worry__item fade-in">化学染料の<br>強い色が、なんとなく苦手</li>
+        <li class="worry__item fade-in">流行りものより、<br>長く育てられるものがほしい</li>
+      </ul>
+    </section>
+
+    <!-- ===================== ③ ストーリー（スクロール連動） ===================== -->
+    <!-- .story は縦に長く、中身は画面に貼りついたまま。スクロール量で --p（0〜1）が変わる -->
+    <section class="story" id="story">
+      <div class="story__sticky">
+        <div class="story__visual">
+          <div class="bag bag--story">
+            <span class="bag__handle bag__handle--back"></span>
+            <span class="bag__handle"></span>
+            <span class="bag__body"><span class="bag__tag">KONOMI</span></span>
+          </div>
+        </div>
+        <div class="story__text">
+          <p class="story__en">Our Story</p>
+          <h2 class="story__title">どんぐりが、<br>布を染める。</h2>
+          <ol class="story__points">
+            <li data-at="0.15"><span>01</span>森で拾ったどんぐりを、ことことと煮出して染液に。</li>
+            <li data-at="0.4"><span>02</span>リネンを何度もくぐらせて、淡い色をすこしずつ重ねる。</li>
+            <li data-at="0.65"><span>03</span>天日でゆっくり干して、ひとつずつ手で仕立てる。</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ④ カラー切り替え ===================== -->
+    <section class="section colors" id="colors">
+      <h2 class="section__title fade-in"><span>Colors</span>4つの、森のいろ</h2>
+      <div class="colors__body">
+        <div class="colors__visual fade-in">
+          <div class="bag bag--big">
+            <span class="bag__handle bag__handle--back"></span>
+            <span class="bag__handle"></span>
+            <span class="bag__body"><span class="bag__tag">KONOMI</span></span>
+          </div>
+        </div>
+        <div class="colors__info fade-in">
+          <p class="colors__name">生成り <span>kinari</span></p>
+          <p class="colors__desc">染める前のリネンに、どんぐりをほんのひとしずく。</p>
+          <!-- 色ボタン（data-color の名前は script.js の COLORS と同じにする） -->
+          <div class="swatches" role="radiogroup" aria-label="バッグの色">
+            <button class="swatch is-active" data-color="kinari" aria-label="生成り"></button>
+            <button class="swatch" data-color="haizakura" aria-label="灰桜"></button>
+            <button class="swatch" data-color="koke" aria-label="苔"></button>
+            <button class="swatch" data-color="usuzumi" aria-label="薄墨"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ⑤ ビフォーアフター（経年変化） ===================== -->
+    <section class="section aging" id="aging">
+      <h2 class="section__title fade-in"><span>Aging</span>使うほど、やわらかく</h2>
+      <p class="section__lead fade-in">リネンは使うほどに、くたっとなじんで色に深みが出ます。<br>スライダーを動かして、1年後のすがたを見てみてください。</p>
+
+      <!-- --pos（0〜100%）で、上に重ねた「1年後」の見える幅が変わる -->
+      <div class="compare fade-in" style="--pos: 50%;">
+        <div class="compare__img compare__img--before"><span>NEW</span></div>
+        <div class="compare__img compare__img--after"><span>1 YEAR</span></div>
+        <div class="compare__line" aria-hidden="true"></div>
+        <input type="range" class="compare__range" min="0" max="100" value="50" aria-label="新品と1年後を比べるスライダー">
+      </div>
+    </section>
+
+    <!-- ===================== ⑥ お客様の声 ===================== -->
+    <section class="section voices">
+      <h2 class="section__title fade-in"><span>Voices</span>つかっている人の声</h2>
+      <ul class="voices__list">
+        <li class="voice fade-in">
+          <p>「くすんだピンクが、生成りのワンピースにぴったり。持つだけで気分がやわらぎます。」</p>
+          <span>— 20代・灰桜</span>
+        </li>
+        <li class="voice fade-in">
+          <p>「1年使ったら、くたっとして手になじんできました。育てる楽しさがあります。」</p>
+          <span>— 30代・生成り</span>
+        </li>
+        <li class="voice fade-in">
+          <p>「名入れ刺繍をして、母へのプレゼントに。包装もかわいくて喜ばれました。」</p>
+          <span>— 20代・苔</span>
+        </li>
+      </ul>
+      <p class="voices__note">※ 架空のブランドのため、お客様の声はイメージです</p>
+    </section>
+
+    <!-- ===================== ⑦ 購入シミュレーター ===================== -->
+    <section class="section order" id="order">
+      <h2 class="section__title fade-in"><span>Order</span>あなただけの、ひとつを</h2>
+
+      <div class="order__body">
+        <div class="order__visual">
+          <div class="bag bag--order">
+            <span class="bag__handle bag__handle--back"></span>
+            <span class="bag__handle"></span>
+            <span class="bag__body"><span class="bag__tag bag__tag--name">KONOMI</span></span>
+          </div>
+        </div>
+
+        <form class="order__form" onsubmit="return false;">
+          <fieldset>
+            <legend>カラー</legend>
+            <div class="option-row">
+              <label><input type="radio" name="color" value="kinari" checked> 生成り</label>
+              <label><input type="radio" name="color" value="haizakura"> 灰桜</label>
+              <label><input type="radio" name="color" value="koke"> 苔</label>
+              <label><input type="radio" name="color" value="usuzumi"> 薄墨</label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>サイズ</legend>
+            <div class="option-row">
+              <label><input type="radio" name="size" value="S" checked> S（A4）</label>
+              <label><input type="radio" name="size" value="M"> M（B4・PC可）</label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>個数</legend>
+            <div class="qty">
+              <button type="button" class="qty__btn" data-diff="-1" aria-label="1つ減らす">−</button>
+              <output class="qty__num">1</output>
+              <button type="button" class="qty__btn" data-diff="1" aria-label="1つ増やす">＋</button>
+            </div>
+            <p class="order__hint">2点以上で、本体価格が10%オフ</p>
+          </fieldset>
+
+          <fieldset>
+            <legend>オプション</legend>
+            <label class="check"><input type="checkbox" name="embroidery"> 名入れ刺繍（＋¥880）</label>
+            <input type="text" class="order__name" maxlength="10" placeholder="刺繍する文字（英字10文字まで）" disabled>
+            <label class="check"><input type="checkbox" name="gift"> ギフト包装（＋¥330）</label>
+          </fieldset>
+
+          <!-- 金額の内訳（JS で計算） -->
+          <dl class="price">
+            <dt>本体</dt><dd class="price__items">¥0</dd>
+            <dt class="price__discount-label">まとめ買い割引</dt><dd class="price__discount">−¥0</dd>
+            <dt>オプション</dt><dd class="price__options">¥0</dd>
+            <dt>送料</dt><dd class="price__shipping">¥0</dd>
+            <dt class="price__total-label">合計（税込）</dt><dd class="price__total">¥0</dd>
+          </dl>
+          <p class="order__hint price__free-hint"></p>
+
+          <button type="button" class="btn btn--wide order__submit">カートに入れる</button>
+          <p class="order__demo">※ 練習用の架空ブランドです。実際の購入はできません。</p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================== ⑧ よくある質問 ===================== -->
+    <section class="section faq">
+      <h2 class="section__title fade-in"><span>FAQ</span>よくある質問</h2>
+      <div class="faq__list">
+        <details class="faq__item fade-in">
+          <summary>洗濯はできますか？</summary>
+          <p>手洗いをおすすめしています。草木染めなので、はじめの数回は色が少し出ることがあります。</p>
+        </details>
+        <details class="faq__item fade-in">
+          <summary>ひとつずつ色が違いますか？</summary>
+          <p>はい。手で染めているため、同じ色でもわずかに濃淡が異なります。それも草木染めの魅力です。</p>
+        </details>
+        <details class="faq__item fade-in">
+          <summary>届くまで何日かかりますか？</summary>
+          <p>ご注文から5〜7日ほどでお届けします。名入れ刺繍は、さらに3日ほどお時間をいただきます。</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ===================== ⑨ 最後のひと押し ===================== -->
+    <section class="final">
+      <p class="final__text fade-in">森で拾った、ちいさな色を<br>あなたの毎日に。</p>
+      <a href="#order" class="btn fade-in">いますぐ選ぶ</a>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="footer__logo">KONOMI</p>
+    <p class="footer__link">森の工房のとなりには <a href="https://cafedonguri.netlify.app/" target="_blank">Café Donguri</a> があります</p>
+    <small>&copy; 2026 KONOMI (practice / fictional brand)</small>
+  </footer>
+
+  <!-- スマホ用：画面下に追従する購入ボタン -->
+  <a href="#order" class="sticky-cta">
+    <span>どんぐり染めのリネントート</span>
+    <span class="sticky-cta__btn">購入する</span>
+  </a>
+
+  <!-- カートに入れたときの小さなお知らせ -->
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
