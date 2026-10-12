@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WARM WAKE ワイヤーフレーム</title>
+  <style>
+    /* ワイヤーフレーム用の、最低限の見た目（本番のデザインではありません） */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; color: #333; background: #fafafa; line-height: 1.8; }
+    .wf-header { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 16px;
+      padding: 12px 24px; background: #fff; border-bottom: 1px solid #ccc; }
+    .wf-header strong { margin-right: auto; letter-spacing: .2em; }
+    .box { border: 2px dashed #aaa; background: #eee; color: #777; display: grid; place-items: center;
+      text-align: center; padding: 16px; font-size: 14px; }
+    .btn { display: inline-block; padding: 8px 20px; border: 2px solid #333; border-radius: 999px; font-size: 14px; background: #fff; }
+    .memo { margin-top: 12px; padding: 10px 14px; border-left: 4px solid #f0b400; background: #fff8dc; font-size: 13px; }
+    .memo::before { content: "メモ："; font-weight: bold; }
+    section { padding: 72px 24px; max-width: 1000px; margin: 0 auto; }
+    h2 { font-size: 22px; margin-bottom: 8px; }
+    .label { display: inline-block; font-size: 12px; padding: 2px 8px; background: #333; color: #fff; margin-bottom: 8px; }
+    .grid { display: grid; gap: 16px; }
+    .g2 { grid-template-columns: 1fr 1fr; } .g3 { grid-template-columns: repeat(3, 1fr); } .g4 { grid-template-columns: repeat(4, 1fr); }
+
+    /* ---- 物語パート：左に時計を固定、右にシーンが流れる ---- */
+    .story { display: grid; grid-template-columns: 220px 1fr; max-width: 1000px; margin: 0 auto; }
+    .clock { position: sticky; top: 80px; height: 200px; margin: 24px; border: 3px solid #333; border-radius: 16px;
+      display: grid; place-items: center; background: #fff; }
+    .clock b { font-size: 48px; font-variant-numeric: tabular-nums; }
+    .clock small { display: block; text-align: center; font-size: 12px; color: #777; }
+    .scene { min-height: 90vh; padding: 48px 24px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+    .scene .box { height: 240px; }
+    .scene h3 { font-size: 20px; }
+
+    @media (max-width: 768px) {
+      .g2, .g3, .g4 { grid-template-columns: 1fr; }
+      .story { grid-template-columns: 1fr; }
+      .clock { top: 56px; height: 90px; margin: 8px 16px; z-index: 5; }
+      .clock b { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="wf-header">
+  <strong>WARM WAKE</strong>
+  <span>機能 ／ 診断 ／ 価格 ／ FAQ</span>
+  <span class="btn">購入する</span>
+</header>
+
+<!-- ===================== 前半：ある冬の朝の物語 ===================== -->
+<section style="padding-bottom: 0;">
+  <span class="label">0. オープニング</span>
+  <div class="box" style="height: 60vh;">真っ暗な部屋。中央に小さく「スクロールで、朝をすすめる ↓」</div>
+  <p class="memo">最初は商品名を出さず、まず「冬の夜」の空気に引き込む。スクロールの合図だけ見せる</p>
+</section>
+
+<div class="story">
+  <!-- スクロールに合わせて時刻が変わる時計（本番では背景の色も夜→朝に変わる） -->
+  <div class="clock"><div><b class="clock__time">23:00</b><small class="clock__label">寝る前</small></div></div>
+
+  <div>
+    <div class="scene" data-time="23:00" data-label="寝る前">
+      <span class="label">1. 23:00 寝る前（悩み①）</span>
+      <div class="box">【イラスト】布団の中で、エアコンのリモコンを持って迷っている人</div>
+      <h3>「タイマー、何時にしたっけ…」</h3>
+      <p>毎晩セットするのが面倒。忘れた日の朝は、地獄。</p>
+      <p class="memo">悩みC（タイマーが面倒・忘れる）。共感の一言を大きく</p>
+    </div>
+
+    <div class="scene" data-time="2:00" data-label="深夜">
+      <span class="label">2. 2:00 深夜（悩み②）</span>
+      <div class="box">【イラスト】つけっぱなしのエアコン。乾いたのど、メーターが回る電気代</div>
+      <h3>「つけっぱなしで寝たら、のどがカラカラ。」</h3>
+      <p>電気代も、気になる。</p>
+      <p class="memo">悩みD（乾燥・電気代）。部屋は真っ暗のまま</p>
+    </div>
+
+    <div class="scene" data-time="5:30" data-label="夜明け前">
+      <span class="label">3. 5:30 夜明け前（解決の始まり）</span>
+      <div class="box">【商品写真】暗い部屋で、枕元の WARM WAKE がぽっと光る。<br>画面に「今朝の外気温 −1℃ ／ あなたは寒がりタイプ」</div>
+      <h3>そのころ、WARM WAKE は今朝の寒さを調べています。</h3>
+      <p>外の気温と、あなたの体質に合わせて「何時から温めるか」を自分で決める。</p>
+      <p class="memo">ここで初めて商品が登場。機能A（気温で自動調整）＋ AI体質アンケート</p>
+    </div>
+
+    <div class="scene" data-time="6:15" data-label="暖房ON">
+      <span class="label">4. 6:15 暖房が自動でON</span>
+      <div class="box">【イラスト】エアコンが静かに動き出す。部屋の色が、青→ほんのりオレンジへ</div>
+      <h3>いつものエアコンが、ひとりでに動き出す。</h3>
+      <p>リモコンの信号を覚えるから、今あるエアコンがそのまま使える。</p>
+      <p class="memo">機能B（今のエアコンでOK）。本番では背景色がここから暖色に変わり始める</p>
+    </div>
+
+    <div class="scene" data-time="6:45" data-label="朝の光">
+      <span class="label">5. 6:45 朝日のような光</span>
+      <div class="box">【イラスト】WARM WAKE の光が、だんだん明るくなる</div>
+      <h3>まぶしくない、朝日のような光。</h3>
+      <p>音より先に、光で目覚めをやさしくサポート。</p>
+      <p class="memo">機能C。健康効果を言いすぎない表現にする（「ビタミン」等はNG）</p>
+    </div>
+
+    <div class="scene" data-time="7:00" data-label="起床">
+      <span class="label">6. 7:00 起床（キャッチコピー）</span>
+      <div class="box" style="height: 320px;">【メインビジュアル】あたたかい部屋で、布団から気持ちよく出る人 ＋ 商品</div>
+      <h3 style="font-size: 32px;">冬の朝に、勝てる。</h3>
+      <p>WARM WAKE ── 起きる前に、部屋をあたためる目覚まし時計。</p>
+      <span class="btn">くわしく見る ↓</span>
+      <p class="memo">物語のクライマックス。ここで初めてロゴとキャッチを大きく出す</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 後半：ちゃんと売る ===================== -->
+<section>
+  <span class="label">7. あなたの朝タイプ診断（目玉②）</span>
+  <h2>あなたに合う「朝のあたため方」は？</h2>
+  <div class="grid g3">
+    <div class="box">Q1. 寒がり？暑がり？<br>（5段階スライダー）</div>
+    <div class="box">Q2. 起きたい時間は？<br>（時刻を選ぶ）</div>
+    <div class="box">Q3. 部屋の広さは？<br>（6畳／8畳／10畳〜）</div>
+  </div>
+  <div class="box" style="margin-top: 16px; height: 120px;">【結果カード】あなたは「こたつ猫タイプ」。おすすめ：6:20から 23℃ で温め始め</div>
+  <p class="memo">購入後のAIアンケートの「体験版」。答えるとすぐ結果が出る（JS）。結果の下に購入ボタン</p>
+</section>
+
+<section>
+  <span class="label">8. 機能まとめ</span>
+  <h2>WARM WAKE ができること</h2>
+  <div class="grid g4">
+    <div class="box" style="height: 160px;">【アイコン】<br>気温で開始時間を自動調整</div>
+    <div class="box" style="height: 160px;">【アイコン】<br>AIがあなたの体質を学習</div>
+    <div class="box" style="height: 160px;">【アイコン】<br>今あるエアコンでOK</div>
+    <div class="box" style="height: 160px;">【アイコン】<br>朝日のような光</div>
+  </div>
+  <p class="memo">物語で見せた機能を、ここで一覧にして整理する（流し読みする人向け）</p>
+</section>
+
+<section>
+  <span class="label">9. 使い方（3ステップ）</span>
+  <div class="grid g3">
+    <div class="box" style="height: 160px;">STEP1<br>枕元に置く</div>
+    <div class="box" style="height: 160px;">STEP2<br>エアコンのリモコンを向けて、ボタンを1回押す</div>
+    <div class="box" style="height: 160px;">STEP3<br>アプリで3分のアンケートに答える</div>
+  </div>
+  <p class="memo">「設定がむずかしそう」という不安を消す</p>
+</section>
+
+<section>
+  <span class="label">10. 使っている人の声</span>
+  <div class="grid g3">
+    <div class="box" style="height: 140px;">大学生・寒がり<br>「1限に遅れなくなった」</div>
+    <div class="box" style="height: 140px;">新社会人<br>「タイマーのことを考えなくなった」</div>
+    <div class="box" style="height: 140px;">在宅ワーカー<br>「のどの乾燥が減った」</div>
+  </div>
+  <p class="memo">架空ブランドなので「※ イメージです」と明記</p>
+</section>
+
+<section>
+  <span class="label">11. 価格・購入</span>
+  <div class="grid g2">
+    <div class="box" style="height: 220px;">【商品写真】<br>カラー：スノーホワイト／チャコール</div>
+    <div class="box" style="height: 220px;">¥12,800（税込）<br>30日間おためし返品OK<br>送料無料<br>[ 購入する ]</div>
+  </div>
+  <p class="memo">カラー切り替えで写真が変わる。返品保証で「失敗したくない」不安を消す</p>
+</section>
+
+<section>
+  <span class="label">12. よくある質問</span>
+  <div class="grid">
+    <div class="box" style="justify-content: start;">Q. 電気代はどれくらい？（1回あたり約〇円）</div>
+    <div class="box" style="justify-content: start;">Q. どのエアコンでも使える？</div>
+    <div class="box" style="justify-content: start;">Q. 光はまぶしくない？</div>
+    <div class="box" style="justify-content: start;">Q. 賃貸でも使える？（工事不要）</div>
+  </div>
+  <p class="memo">悩みE（電気代）はここで回答。開閉式のアコーディオン</p>
+</section>
+
+<section>
+  <span class="label">13. 最後のひと押し</span>
+  <div class="box" style="height: 200px;">「今年の冬は、布団に負けない。」<br>[ 購入する ]</div>
+</section>
+
+<section style="padding-top: 0;">
+  <div class="box" style="height: 80px;">フッター（© WARM WAKE ／ 練習用の架空ブランド）</div>
+  <p class="memo">スマホでは、物語パートが終わったあと、画面下に購入ボタンを追従させる</p>
+</section>
+
+<script>
+  // ワイヤーフレーム用：画面の中央にあるシーンの時刻を、時計に表示するだけ
+  const timeEl = document.querySelector(".clock__time");
+  const labelEl = document.querySelector(".clock__label");
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        timeEl.textContent = entry.target.dataset.time;
+        labelEl.textContent = entry.target.dataset.label;
+      }
+    });
+  }, { rootMargin: "-50% 0px -50% 0px" }); // 画面のちょうど真ん中を通ったとき
+  document.querySelectorAll(".scene").forEach((s) => observer.observe(s));
+</script>
+</body>
+</html>
