@@ -28,14 +28,37 @@
   </header>
 
   <main>
-    <!-- ===================== 0. オープニング ===================== -->
-    <section class="intro">
-      <p class="intro__en">a winter morning story</p>
-      <p class="intro__title">冬の朝は、なぜこんなに<br>つらいんだろう。</p>
-      <p class="intro__hint">
-        <span class="intro__mouse" aria-hidden="true"></span>
-        スクロールで、朝をすすめる
-      </p>
+    <!-- ===================== 0. ファーストビュー（3秒で「何の商品か」がわかる） ===================== -->
+    <section class="fv">
+      <div class="fv__text">
+        <p class="fv__label">冬の朝のための、目覚まし時計</p>
+        <h1 class="fv__title">起きる前に、<br>部屋をあたためる。</h1>
+        <p class="fv__lead">外の気温とあなたの体質に合わせて、いつものエアコンを自動でON。<br>布団から出られない朝を、終わらせます。</p>
+        <ul class="fv__chips">
+          <li>気温で自動調整</li>
+          <li>今のエアコンでOK</li>
+          <li>光で目覚め</li>
+        </ul>
+        <p class="fv__price">¥12,800 <small>（税込）・30日間おためし返品OK</small></p>
+        <div class="fv__actions">
+          <a href="#price" class="btn">購入する</a>
+          <button class="btn btn--ghost js-play-story">
+            <span class="play-icon" aria-hidden="true"></span>ある冬の朝を見る（約30秒）
+          </button>
+        </div>
+      </div>
+
+      <div class="fv__visual" aria-hidden="true">
+        <div class="fv__glow"></div>
+        <svg viewBox="0 0 240 180" class="product product--fv">
+          <ellipse cx="120" cy="160" rx="90" ry="10" class="product__shadow"/>
+          <rect x="30" y="50" width="180" height="104" rx="40" class="product__body"/>
+          <rect x="62" y="78" width="116" height="44" rx="14" class="product__screen"/>
+          <text x="120" y="108" class="product__time">7:00</text>
+        </svg>
+      </div>
+
+      <p class="fv__scroll">スクロールすると、ある冬の朝の物語がはじまります ↓</p>
     </section>
 
     <!-- ===================== 1〜6. ある冬の朝の物語（スクロール連動） ===================== -->
@@ -172,11 +195,18 @@
           </article>
         </div>
 
-        <!-- 夜→朝の進み具合 -->
-        <div class="timeline" aria-hidden="true">
-          <span>23:00</span>
-          <div class="timeline__bar"><div class="timeline__fill"></div></div>
-          <span>7:00</span>
+        <!-- 物語をとばすリンク（急いでいる人向け） -->
+        <a href="#quiz" class="story__skip">物語をとばして、商品を見る →</a>
+
+        <!-- 再生ボタンとチャプター（JS で中身を作る） -->
+        <div class="controls">
+          <button class="controls__play js-play-story" aria-pressed="false">
+            <span class="play-icon" aria-hidden="true"></span><span class="controls__label">再生</span>
+          </button>
+          <div class="controls__track">
+            <div class="controls__bar"><div class="controls__fill"></div></div>
+            <div class="controls__chapters"></div>
+          </div>
         </div>
       </div>
     </section>

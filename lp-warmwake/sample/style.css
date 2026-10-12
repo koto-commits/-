@@ -160,67 +160,153 @@ button {
   font-size: 13px;
 }
 
-/* ---------- 0. オープニング ---------- */
-.intro {
+/* ---------- 0. ファーストビュー ---------- */
+.fv {
+  position: relative;
   min-height: 100vh;
+  padding: 96px var(--side) 80px;
   display: grid;
-  place-content: center;
-  text-align: center;
-  gap: 20px;
-  padding: 0 var(--side);
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 40px;
 }
 
-.intro__en {
-  font-family: var(--font-en);
-  font-weight: 200;
-  letter-spacing: 0.4em;
-  color: var(--sub);
-  animation: fade-up 1.6s ease both;
+.fv__text > * {
+  animation: fade-up 1.2s ease both;
 }
+.fv__text > :nth-child(2) { animation-delay: 0.1s; }
+.fv__text > :nth-child(3) { animation-delay: 0.2s; }
+.fv__text > :nth-child(4) { animation-delay: 0.3s; }
+.fv__text > :nth-child(5) { animation-delay: 0.4s; }
+.fv__text > :nth-child(6) { animation-delay: 0.5s; }
 
-.intro__title {
-  font-size: clamp(24px, 4vw, 40px);
-  font-weight: 500;
-  line-height: 1.8;
-  animation: fade-up 1.6s 0.3s ease both;
-}
-
-.intro__hint {
-  margin-top: 40px;
+.fv__label {
+  display: inline-block;
+  padding: 4px 14px;
+  border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  border-radius: 999px;
   font-size: 13px;
   color: var(--sub);
-  display: grid;
-  justify-items: center;
+}
+
+.fv__title {
+  margin: 16px 0;
+  font-size: clamp(34px, 5vw, 60px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.fv__lead {
+  color: var(--sub);
+}
+
+.fv__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0;
+}
+
+.fv__chips li {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  font-size: 13px;
+}
+
+.fv__chips li::before {
+  content: "✓ ";
+  color: var(--accent);
+}
+
+.fv__price {
+  font-family: var(--font-en);
+  font-weight: 300;
+  font-size: 32px;
+}
+
+.fv__price small {
+  font-family: var(--font-ja);
+  font-size: 13px;
+  color: var(--sub);
+}
+
+.fv__actions {
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  animation: fade-up 1.6s 0.8s ease both;
+  margin-top: 24px;
 }
 
-/* マウスの形と、中で動く点 */
-.intro__mouse {
-  width: 24px;
-  height: 38px;
-  border: 1.5px solid currentColor;
-  border-radius: 12px;
+/* 枠線だけのボタン */
+.btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 50%, transparent);
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn--ghost:hover {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  box-shadow: none;
+}
+
+/* ▶ の三角（CSS で作る）。.is-playing のときは ❚❚ に変わる */
+.play-icon {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 6px 0 6px 10px;
+  border-color: transparent transparent transparent currentColor;
+}
+
+.is-playing .play-icon {
+  width: 10px;
+  height: 12px;
+  border-width: 0 3px;
+  border-color: currentColor;
+}
+
+/* 商品：夜の部屋で光っているイメージ */
+.fv__visual {
   position: relative;
+  display: grid;
+  place-items: center;
+  animation: fade-up 1.4s 0.3s ease both;
 }
 
-.intro__mouse::after {
-  content: "";
+.fv__glow {
   position: absolute;
-  left: 50%;
-  top: 8px;
-  width: 3px;
-  height: 7px;
-  margin-left: -1.5px;
-  border-radius: 2px;
-  background: currentColor;
-  animation: scroll-dot 1.8s ease-in-out infinite;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 190, 130, 0.55), transparent 65%);
+  animation: breathe 4s ease-in-out infinite;
 }
 
-@keyframes scroll-dot {
-  0%   { opacity: 0; transform: translateY(0); }
-  30%  { opacity: 1; }
-  100% { opacity: 0; transform: translateY(12px); }
+@keyframes breathe {
+  0%, 100% { transform: scale(0.92); opacity: 0.8; }
+  50%      { transform: scale(1.05); opacity: 1; }
+}
+
+.product--fv {
+  position: relative;
+  width: min(420px, 100%);
+  --device: #f2efe9;
+  --device-screen: #2b2f45;
+}
+
+.fv__scroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--sub);
 }
 
 @keyframes fade-up {
@@ -421,34 +507,106 @@ button {
   margin-top: 8px;
 }
 
-/* 夜→朝の進み具合のバー */
-.timeline {
+/* 物語をとばすリンク */
+.story__skip {
+  position: absolute;
+  top: 92px;
+  right: var(--side);
+  z-index: 3;
+  font-size: 13px;
+  color: var(--sub);
+  border-bottom: 1px solid currentColor;
+}
+
+/* 再生ボタンとチャプター */
+.controls {
   position: absolute;
   left: var(--side);
   right: var(--side);
-  bottom: 28px;
+  bottom: 18px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-family: var(--font-en);
-  font-size: 12px;
-  color: var(--sub);
+  gap: 20px;
+  z-index: 3;
 }
 
-.timeline__bar {
+.controls__play {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 112px;
+  height: 44px; /* 指で押しやすい大きさ */
+  padding: 0 20px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  box-shadow: 0 8px 24px -8px rgba(232, 135, 90, 0.8);
+}
+
+.controls__track {
+  position: relative;
   flex: 1;
+  height: 44px;
+}
+
+.controls__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 12px;
   height: 2px;
-  background: color-mix(in srgb, var(--sub) 30%, transparent);
   border-radius: 2px;
+  background: color-mix(in srgb, var(--sub) 30%, transparent);
   overflow: hidden;
 }
 
-.timeline__fill {
+.controls__fill {
   height: 100%;
-  width: 100%;
   background: linear-gradient(90deg, #5a6bb0, var(--accent));
   transform-origin: left;
   transform: scaleX(var(--progress, 0));
+}
+
+/* チャプターのボタン：バーの上の丸＋その下の時刻 */
+.chapter {
+  position: absolute;
+  top: 0;
+  translate: -50% 0;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 44px;
+  padding: 4px 2px;
+  border: none;
+  background: none;
+  font-family: var(--font-en);
+  font-size: 11px;
+  color: var(--sub);
+}
+
+.chapter::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  background: var(--page);
+  transition: background 0.3s, transform 0.3s;
+}
+
+.chapter:hover::before {
+  transform: scale(1.2);
+}
+
+.chapter.is-passed {
+  color: var(--accent);
+}
+
+.chapter.is-passed::before {
+  background: var(--accent);
 }
 
 /* ---------- 後半（朝のパート）の共通 ---------- */
@@ -1011,6 +1169,10 @@ button {
     left: 20px;
   }
 
+  .stage {
+    padding-bottom: 72px;
+  }
+
   .hud__time {
     font-size: 40px;
   }
@@ -1037,8 +1199,56 @@ button {
     font-size: 40px;
   }
 
-  .timeline {
-    bottom: 16px;
+  .story__skip {
+    top: 80px;
+    right: 20px;
+    font-size: 12px;
+  }
+
+  .controls {
+    left: 16px;
+    right: 16px;
+    bottom: 10px;
+    gap: 12px;
+  }
+
+  .controls__play {
+    min-width: 0;
+    padding: 0 16px;
+  }
+
+  .controls__label {
+    display: none; /* スマホではアイコンだけにして、チャプターの場所を広く */
+  }
+
+  .chapter {
+    min-width: 36px;
+    font-size: 10px;
+  }
+
+  .fv {
+    grid-template-columns: 1fr;
+    padding-top: 80px;
+    gap: 8px;
+  }
+
+  .fv__visual {
+    order: -1; /* スマホでは商品を先に */
+  }
+
+  .product--fv {
+    width: min(260px, 70vw);
+  }
+
+  .fv__actions .btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .fv__scroll {
+    position: static;
+    margin-top: 24px;
   }
 
   .section {

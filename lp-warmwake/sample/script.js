@@ -91,7 +91,7 @@ const scenes = document.querySelectorAll(".scene");
 const hudTime = document.querySelector(".hud__time");
 const hudRoom = document.querySelector(".hud__room");
 const deviceTime = document.querySelector(".device__time");
-const timelineFill = document.querySelector(".timeline__fill");
+const controlsFill = document.querySelector(".controls__fill");
 
 // 雪を2組にして、すき間なく降り続けるようにする
 const snow = document.querySelector(".snow");
@@ -104,6 +104,7 @@ function updateStory() {
   const rect = story.getBoundingClientRect();
   const total = story.offsetHeight - window.innerHeight;
   const p = Math.min(Math.max(-rect.top / total, 0), 1);
+  currentP = p;
 
   // 色：夜 → 夜明け（p 0.4〜0.76）、夜明け → 朝（p 0.76〜0.95）
   const toDawn = smooth(p, 0.4, 0.76);
@@ -120,7 +121,12 @@ function updateStory() {
   root.style.setProperty("--light", smooth(p, 0.74, 0.9).toFixed(3));  // 6:45 ごろに光り始める
   root.style.setProperty("--warm", smooth(p, 0.62, 0.95).toFixed(3));
   root.style.setProperty("--sleep", (1 - smooth(p, 0.88, 0.93)).toFixed(3)); // 7:00 で起き上がる
-  timelineFill.style.setProperty("--progress", p.toFixed(3));
+  controlsFill.style.setProperty("--progress", p.toFixed(3));
+
+  // 通りすぎたチャプターに色をつける
+  chapterButtons.forEach((btn) => {
+    btn.classList.toggle("is-passed", p >= Number(btn.dataset.p) - 0.001);
+  });
 
   // 時計と室温
   const time = formatTime(fromTable(CLOCK, p));
@@ -142,6 +148,7 @@ function updateStory() {
 // スクロールのたびに計算すると重いので、画面の更新1回につき1回だけにする
 let ticking = false;
 let storyDone = false;
+let currentP = 0;
 window.addEventListener(
   "scroll",
   () => {
@@ -155,6 +162,97 @@ window.addEventListener(
   { passive: true }
 );
 window.addEventListener("resize", updateStory);
+
+// ---------- 物語の操作：チャプター・再生ボタン ----------
+
+// p（0〜1）の位置にあたる、ページのスクロール位置
+function storyY(p) {
+  return story.offsetTop + (story.offsetHeight - window.innerHeight) * p;
+}
+
+// 各シーンの始まりに、チャプターのボタンを作る
+const chaptersEl = document.querySelector(".controls__chapters");
+const chapterButtons = [];
+scenes.forEach((scene) => {
+  const from = Number(scene.dataset.from);
+  const target = from === 0 ? 0 : from + 0.02; // 少しだけ内側に飛ぶと、そのシーンが確実に表示される
+  const btn = document.createElement("button");
+  btn.className = "chapter";
+  btn.dataset.p = target;
+  btn.style.left = target * 100 + "%";
+  btn.textContent = scene.querySelector(".scene__time").textContent.split(" ")[0]; // 「23:00 ・ 寝る前」→「23:00」
+  btn.setAttribute("aria-label", scene.querySelector(".scene__time").textContent + " へ移動");
+  btn.addEventListener("click", () => {
+    stopPlay();
+    window.scrollTo({ top: storyY(target), behavior: "smooth" });
+  });
+  chaptersEl.appendChild(btn);
+  chapterButtons.push(btn);
+});
+
+// 再生：ページを少しずつ自動でスクロールして、時間を進める
+const STORY_SECONDS = 30; // 物語ぜんぶを、約30秒で見せる
+const playButtons = document.querySelectorAll(".js-play-story");
+const playLabel = document.querySelector(".controls__label");
+let playing = false;
+let lastTime = 0;
+let playY = 0; // 自動スクロールの位置（小数点まで覚えておく）
+
+function setPlayingUI() {
+  playButtons.forEach((btn) => btn.classList.toggle("is-playing", playing));
+  const controlsPlay = document.querySelector(".controls__play");
+  controlsPlay.setAttribute("aria-pressed", playing);
+  playLabel.textContent = playing ? "一時停止" : currentP >= 0.99 ? "もう一度" : "再生";
+}
+
+function step(time) {
+  if (!playing) return;
+  const dt = lastTime ? time - lastTime : 16;
+  lastTime = time;
+  const pxPerMs = (story.offsetHeight - window.innerHeight) / (STORY_SECONDS * 1000);
+  // scrollBy で少しずつ足すと、スマホでは小数点が切り捨てられて進まないことがあるので、
+  // 位置を自分で覚えておいて、そこへ移動させる
+  playY = Math.min(playY + pxPerMs * dt, storyY(1));
+  window.scrollTo(0, playY);
+
+  if (playY >= storyY(1) - 1) {
+    currentP = 1;
+    stopPlay(); // 最後（7:00）まで来たら止める
+    return;
+  }
+  requestAnimationFrame(step);
+}
+
+function startPlay() {
+  // 物語の外にいる・最後まで見終わっている → 最初から
+  const rect = story.getBoundingClientRect();
+  const outside = rect.top > 0 || rect.bottom < window.innerHeight;
+  if (outside || currentP >= 0.99) {
+    window.scrollTo({ top: storyY(0), behavior: "auto" });
+  }
+  playing = true;
+  lastTime = 0;
+  playY = window.scrollY;
+  setPlayingUI();
+  requestAnimationFrame(step);
+}
+
+function stopPlay() {
+  playing = false;
+  setPlayingUI();
+}
+
+playButtons.forEach((btn) => {
+  btn.addEventListener("click", () => (playing ? stopPlay() : startPlay()));
+});
+
+// 自分でスクロールし始めたら、自動再生は止める
+["wheel", "touchstart", "keydown"].forEach((type) => {
+  window.addEventListener(type, () => playing && stopPlay(), { passive: true });
+});
+
+// 「物語をとばす」：自動再生も止めて移動
+document.querySelector(".story__skip").addEventListener("click", stopPlay);
 
 // =========================================================
 // ② 朝タイプ診断
@@ -271,4 +369,5 @@ new IntersectionObserver(([entry]) => {
 
 // ---------- 最初に1回だけ実行 ----------
 updateStory();
+setPlayingUI();
 updateQuiz();
