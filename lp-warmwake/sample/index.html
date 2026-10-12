@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WARM WAKE | 起きる前に、部屋をあたためる目覚まし時計</title>
+  <meta name="description" content="外の気温とあなたの体質に合わせて、起きる前に部屋をあたためておく目覚まし時計（架空ブランド・練習作品）">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;500&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===================== ヘッダー ===================== -->
+  <header class="header">
+    <a href="#" class="header__logo">WARM WAKE</a>
+    <nav class="header__nav">
+      <a href="#features">機能</a>
+      <a href="#quiz">朝タイプ診断</a>
+      <a href="#price">価格</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a href="#price" class="header__cta">購入する</a>
+  </header>
+
+  <main>
+    <!-- ===================== 0. オープニング ===================== -->
+    <section class="intro">
+      <p class="intro__en">a winter morning story</p>
+      <p class="intro__title">冬の朝は、なぜこんなに<br>つらいんだろう。</p>
+      <p class="intro__hint">
+        <span class="intro__mouse" aria-hidden="true"></span>
+        スクロールで、朝をすすめる
+      </p>
+    </section>
+
+    <!-- ===================== 1〜6. ある冬の朝の物語（スクロール連動） ===================== -->
+    <!-- .story は縦に長く、.stage は画面に貼りついたまま。スクロール量で時間が進む -->
+    <section class="story" aria-label="ある冬の朝の物語">
+      <div class="stage">
+
+        <!-- 時計と気温 -->
+        <div class="hud" aria-hidden="true">
+          <p class="hud__time">23:00</p>
+          <p class="hud__temp">外 <span class="hud__out">−1</span>℃ ／ 室内 <span class="hud__room">12</span>℃</p>
+        </div>
+
+        <!-- 部屋のイラスト（SVG）。色や明るさは CSS 変数で変わる -->
+        <div class="room">
+          <svg viewBox="0 0 600 420" role="img" aria-label="冬の朝の寝室のイラスト">
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" class="sky-top"/>
+                <stop offset="100%" class="sky-bottom"/>
+              </linearGradient>
+              <radialGradient id="glow">
+                <stop offset="0%" stop-color="#ffd7a3" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#ffb070" stop-opacity="0"/>
+              </radialGradient>
+              <clipPath id="window-clip"><rect x="60" y="48" width="200" height="172" rx="4"/></clipPath>
+            </defs>
+
+            <!-- 壁と床 -->
+            <rect class="wall" width="600" height="420"/>
+            <rect class="floor" y="378" width="600" height="42"/>
+
+            <!-- 窓：空・星・雪・朝日 -->
+            <g clip-path="url(#window-clip)">
+              <rect x="60" y="48" width="200" height="172" fill="url(#sky)"/>
+              <g class="stars">
+                <circle cx="90" cy="70" r="1.6"/><circle cx="140" cy="92" r="1.2"/><circle cx="205" cy="66" r="1.8"/>
+                <circle cx="235" cy="110" r="1.1"/><circle cx="110" cy="128" r="1.3"/><circle cx="182" cy="140" r="1"/>
+              </g>
+              <circle class="sun" cx="160" cy="250" r="26"/>
+              <g class="snow">
+                <circle cx="80" cy="40" r="2"/><circle cx="120" cy="10" r="1.6"/><circle cx="160" cy="30" r="2.2"/>
+                <circle cx="200" cy="0" r="1.5"/><circle cx="240" cy="25" r="2"/><circle cx="100" cy="-20" r="1.8"/>
+                <circle cx="180" cy="-40" r="1.4"/><circle cx="220" cy="-60" r="2"/>
+              </g>
+              <!-- 窓の下の雪の積もり -->
+              <path class="snowbank" d="M60 220 Q110 200 160 212 T260 206 V220 Z"/>
+            </g>
+            <rect class="window-frame" x="60" y="48" width="200" height="172" rx="4"/>
+            <line class="window-frame" x1="160" y1="48" x2="160" y2="220"/>
+            <line class="window-frame" x1="60" y1="134" x2="260" y2="134"/>
+
+            <!-- エアコン -->
+            <g class="ac">
+              <rect x="330" y="46" width="214" height="62" rx="12" class="ac__body"/>
+              <rect x="346" y="92" width="182" height="6" rx="3" class="ac__louver"/>
+              <circle cx="520" cy="62" r="3" class="ac__lamp"/>
+              <g class="ac__wind">
+                <path d="M360 118 q12 14 0 28 q-12 14 0 28"/>
+                <path d="M437 118 q12 14 0 28 q-12 14 0 28"/>
+                <path d="M514 118 q12 14 0 28 q-12 14 0 28"/>
+              </g>
+            </g>
+
+            <!-- ベッド -->
+            <rect class="bed__frame" x="30" y="300" width="390" height="70" rx="10"/>
+            <rect class="bed__mattress" x="40" y="284" width="370" height="26" rx="10"/>
+            <rect class="bed__pillow" x="52" y="262" width="88" height="30" rx="14"/>
+
+            <!-- 寝ている人（布団のふくらみ） -->
+            <g class="sleeper">
+              <circle class="skin" cx="110" cy="268" r="20"/>
+              <path class="hair" d="M90 266 a20 20 0 0 1 40 -6 q-14 -6 -26 2 q-8 -2 -14 4z"/>
+              <path class="blanket" d="M118 296 q30 -42 110 -34 q110 6 170 30 v18 h-280z"/>
+              <text class="zzz" x="146" y="232">z</text>
+              <text class="zzz zzz--2" x="160" y="214">z</text>
+              <text class="zzz zzz--3" x="176" y="194">Z</text>
+            </g>
+
+            <!-- 起きた人（7:00で登場） -->
+            <g class="riser">
+              <path class="blanket" d="M150 300 q60 -18 150 -14 q60 4 100 12 v12 h-250z"/>
+              <rect class="pajama" x="126" y="214" width="56" height="76" rx="22"/>
+              <circle class="skin" cx="154" cy="190" r="22"/>
+              <path class="hair" d="M132 188 a22 22 0 0 1 44 -6 q-16 -7 -28 2 q-10 -2 -16 4z"/>
+              <path class="arm" d="M176 230 q34 -24 40 -60"/>
+              <path class="arm" d="M132 230 q-30 -22 -34 -58"/>
+            </g>
+
+            <!-- サイドテーブルと WARM WAKE -->
+            <rect class="table" x="446" y="300" width="112" height="78" rx="6"/>
+            <circle class="device__glow" cx="502" cy="276" r="90" fill="url(#glow)"/>
+            <rect class="device" x="468" y="256" width="68" height="44" rx="16"/>
+            <rect class="device__screen" x="478" y="266" width="48" height="20" rx="6"/>
+            <text class="device__time" x="502" y="281">23:00</text>
+
+            <!-- 部屋があたたまっていく色のベール -->
+            <rect class="warm-veil" width="600" height="420"/>
+          </svg>
+        </div>
+
+        <!-- 各シーンの文章（スクロール位置で1つずつ切り替わる） -->
+        <div class="scenes">
+          <article class="scene" data-from="0" data-to="0.18">
+            <p class="scene__time">23:00 ・ 寝る前</p>
+            <h2 class="scene__title">「タイマー、<br>何時にしたっけ…」</h2>
+            <p class="scene__text">毎晩セットするのは面倒。<br>忘れた日の朝は、地獄。</p>
+          </article>
+          <article class="scene" data-from="0.18" data-to="0.4">
+            <p class="scene__time">2:00 ・ 深夜</p>
+            <h2 class="scene__title">つけっぱなしで寝たら、<br>のどがカラカラ。</h2>
+            <p class="scene__text">電気代だって、気になる。</p>
+          </article>
+          <article class="scene" data-from="0.4" data-to="0.58">
+            <p class="scene__time">5:30 ・ 夜明け前</p>
+            <h2 class="scene__title">そのころ WARM WAKE は、<br>今朝の寒さを調べている。</h2>
+            <p class="scene__text">外の気温と、あなたの体質。<br>「何時から温めるか」を、自分で決めます。</p>
+          </article>
+          <article class="scene" data-from="0.58" data-to="0.76">
+            <p class="scene__time">6:15 ・ 暖房 ON</p>
+            <h2 class="scene__title">いつものエアコンが、<br>ひとりでに動き出す。</h2>
+            <p class="scene__text">リモコンの信号を覚えるから、<br>今あるエアコンがそのまま使えます。</p>
+          </article>
+          <article class="scene" data-from="0.76" data-to="0.9">
+            <p class="scene__time">6:45 ・ 朝の光</p>
+            <h2 class="scene__title">まぶしくない、<br>朝日のような光。</h2>
+            <p class="scene__text">音より先に、光で。<br>目覚めをやさしくサポートします。</p>
+          </article>
+          <article class="scene scene--catch" data-from="0.9" data-to="1.01">
+            <p class="scene__time">7:00 ・ 起床</p>
+            <h2 class="scene__title">冬の朝に、<br>勝てる。</h2>
+            <p class="scene__text"><strong>WARM WAKE</strong> ── 起きる前に、部屋をあたためる目覚まし時計。</p>
+            <a href="#quiz" class="btn">あなたの朝タイプを診断する</a>
+          </article>
+        </div>
+
+        <!-- 夜→朝の進み具合 -->
+        <div class="timeline" aria-hidden="true">
+          <span>23:00</span>
+          <div class="timeline__bar"><div class="timeline__fill"></div></div>
+          <span>7:00</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 7. あなたの朝タイプ診断 ===================== -->
+    <section class="section quiz" id="quiz">
+      <p class="section__en reveal">Morning Type</p>
+      <h2 class="section__title reveal">あなたに合う、朝のあたため方は？</h2>
+      <p class="section__lead reveal">購入後にアプリで答える「体質アンケート」の体験版です。<br>3つ答えると、WARM WAKE があなたの朝を設計します。</p>
+
+      <div class="quiz__body reveal">
+        <form class="quiz__form" onsubmit="return false;">
+          <div class="q">
+            <p class="q__label"><span>Q1</span>寒さへの強さは？</p>
+            <input type="range" min="1" max="5" value="4" class="q__cold" aria-label="寒がり度（1：暑がり〜5：寒がり）">
+            <div class="q__scale"><span>暑がり</span><span>ふつう</span><span>寒がり</span></div>
+          </div>
+
+          <div class="q">
+            <p class="q__label"><span>Q2</span>起きたい時間は？</p>
+            <select class="q__wake" aria-label="起きたい時間">
+              <option>6:00</option><option>6:30</option><option selected>7:00</option>
+              <option>7:30</option><option>8:00</option><option>8:30</option>
+            </select>
+          </div>
+
+          <div class="q">
+            <p class="q__label"><span>Q3</span>部屋の広さは？</p>
+            <div class="pills">
+              <label><input type="radio" name="room" value="0" checked> 6畳</label>
+              <label><input type="radio" name="room" value="5"> 8畳</label>
+              <label><input type="radio" name="room" value="10"> 10畳〜</label>
+            </div>
+          </div>
+        </form>
+
+        <!-- 結果（JS で中身が変わる） -->
+        <div class="result" aria-live="polite">
+          <p class="result__label">あなたは</p>
+          <p class="result__type"><span class="result__emoji">🐈</span><span class="result__name">こたつねこ</span>タイプ</p>
+          <p class="result__desc"></p>
+          <dl class="result__plan">
+            <div><dt>温め始め</dt><dd class="result__start">6:20</dd></div>
+            <div><dt>設定温度</dt><dd class="result__temp">23.0℃</dd></div>
+            <div><dt>光り始め</dt><dd class="result__light">6:45</dd></div>
+          </dl>
+          <p class="result__note">※ 今朝の外気温 −1℃ の場合の目安です</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 8. 機能まとめ ===================== -->
+    <section class="section features" id="features">
+      <p class="section__en reveal">Features</p>
+      <h2 class="section__title reveal">WARM WAKE が、できること。</h2>
+      <ul class="features__list">
+        <li class="feature reveal">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6v24"/><circle cx="24" cy="36" r="7"/><path d="M30 12h6M30 18h4M30 24h6"/></svg>
+          <h3>気温で、温め始めを自動調整</h3>
+          <p>寒い朝ほど早く、暖かい朝は遅く。毎朝の天気予報を見て、開始時間を変えます。</p>
+        </li>
+        <li class="feature reveal">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="18" r="8"/><path d="M10 40c2-8 8-12 14-12s12 4 14 12"/><path d="M36 8l2 4 4 1-3 3 1 4-4-2-4 2 1-4-3-3 4-1z"/></svg>
+          <h3>AI が、あなたの体質を学習</h3>
+          <p>暑がり・寒がりのアンケートと、毎朝の「ちょうどよかった？」で、あなた好みに育ちます。</p>
+        </li>
+        <li class="feature reveal">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="10" width="36" height="14" rx="4"/><path d="M12 30q4 4 0 8M24 30q4 4 0 8M36 30q4 4 0 8"/></svg>
+          <h3>今あるエアコンで、そのまま</h3>
+          <p>リモコンの信号を覚えるだけ。スマート家電に買い替える必要も、工事もいりません。</p>
+        </li>
+        <li class="feature reveal">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="28" r="9"/><path d="M24 8v5M10 14l3.5 3.5M38 14l-3.5 3.5M5 28h5M38 28h5M8 40h32"/></svg>
+          <h3>朝日のような、やさしい光</h3>
+          <p>アラームの30分前から、少しずつ明るく。音だけに頼らない目覚めをサポートします。</p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ===================== 9. 使い方 ===================== -->
+    <section class="section steps">
+      <p class="section__en reveal">How to use</p>
+      <h2 class="section__title reveal">設定は、3ステップ。</h2>
+      <ol class="steps__list">
+        <li class="step reveal"><span class="step__num">01</span><h3>枕元に置く</h3><p>エアコンが見える場所なら、どこでもOK。</p></li>
+        <li class="step reveal"><span class="step__num">02</span><h3>リモコンを向けて、1回押す</h3><p>エアコンの「暖房」ボタンの信号を覚えます。</p></li>
+        <li class="step reveal"><span class="step__num">03</span><h3>3分のアンケートに答える</h3><p>あとは毎晩、何もしなくて大丈夫。</p></li>
+      </ol>
+    </section>
+
+    <!-- ===================== 10. 使っている人の声 ===================== -->
+    <section class="section voices">
+      <p class="section__en reveal">Voices</p>
+      <h2 class="section__title reveal">冬の朝が、変わった人たち。</h2>
+      <ul class="voices__list">
+        <li class="voice reveal"><p>「1限の日でも、布団からすっと出られるようになりました。タイマーのことを考えなくていいのが最高です。」</p><span>大学生・寒がり</span></li>
+        <li class="voice reveal"><p>「つけっぱなしをやめたら、のどの乾燥がかなりラクに。朝だけ温まるのがちょうどいい。」</p><span>新社会人・ふつう</span></li>
+        <li class="voice reveal"><p>「暑がりなので温めすぎが心配でしたが、だんだん好みの温度を覚えてくれました。」</p><span>在宅ワーク・暑がり</span></li>
+      </ul>
+      <p class="voices__note">※ 練習用の架空ブランドのため、お客様の声はイメージです</p>
+    </section>
+
+    <!-- ===================== 11. 価格・購入 ===================== -->
+    <section class="section price" id="price">
+      <div class="price__body">
+        <div class="price__visual reveal">
+          <!-- 商品イラスト（色は --device で変わる） -->
+          <svg viewBox="0 0 240 180" class="product" aria-label="WARM WAKE 本体">
+            <ellipse cx="120" cy="160" rx="90" ry="10" class="product__shadow"/>
+            <rect x="30" y="50" width="180" height="104" rx="40" class="product__body"/>
+            <rect x="62" y="78" width="116" height="44" rx="14" class="product__screen"/>
+            <text x="120" y="108" class="product__time">7:00</text>
+            <circle cx="200" cy="60" r="0" />
+          </svg>
+          <div class="swatches" role="radiogroup" aria-label="本体カラー">
+            <button class="swatch is-active" data-color="snow" role="radio" aria-checked="true">スノーホワイト</button>
+            <button class="swatch" data-color="charcoal" role="radio" aria-checked="false">チャコール</button>
+          </div>
+        </div>
+
+        <div class="price__info reveal">
+          <p class="section__en">Price</p>
+          <h2 class="price__name">WARM WAKE</h2>
+          <p class="price__amount">¥12,800 <small>（税込）</small></p>
+          <ul class="price__points">
+            <li>30日間 おためし返品OK</li>
+            <li>送料無料</li>
+            <li>専用アプリ 無料</li>
+          </ul>
+          <button class="btn btn--wide price__buy">カートに入れる</button>
+          <p class="price__demo">※ 練習用の架空ブランドです。実際の購入はできません。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 12. よくある質問 ===================== -->
+    <section class="section faq" id="faq">
+      <p class="section__en reveal">FAQ</p>
+      <h2 class="section__title reveal">よくある質問</h2>
+      <div class="faq__list">
+        <details class="faq__item reveal">
+          <summary>電気代は、どれくらいかかりますか？</summary>
+          <p>6畳の部屋を30分温めた場合、1回あたり約10〜20円が目安です（エアコンの機種や気温によって変わります）。一晩中つけっぱなしにするより、おさえられます。</p>
+        </details>
+        <details class="faq__item reveal">
+          <summary>どのエアコンでも使えますか？</summary>
+          <p>赤外線リモコンで操作するエアコンなら、ほとんどの機種で使えます。</p>
+        </details>
+        <details class="faq__item reveal">
+          <summary>光はまぶしくないですか？</summary>
+          <p>最初はほんのり、少しずつ明るくなります。明るさの上限はアプリで調整できます。</p>
+        </details>
+        <details class="faq__item reveal">
+          <summary>賃貸でも使えますか？</summary>
+          <p>はい。置くだけなので、工事や穴あけは不要です。</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ===================== 13. 最後のひと押し ===================== -->
+    <section class="final">
+      <p class="final__en reveal">This winter,</p>
+      <p class="final__title reveal">今年の冬は、<br>布団に負けない。</p>
+      <a href="#price" class="btn reveal">WARM WAKE をはじめる</a>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="footer__logo">WARM WAKE</p>
+    <small>&copy; 2026 WARM WAKE (practice / fictional brand)</small>
+  </footer>
+
+  <!-- スマホ用：物語を見終わったら出てくる購入ボタン -->
+  <a href="#price" class="sticky-cta">
+    <span>WARM WAKE ¥12,800</span>
+    <span class="sticky-cta__btn">購入する</span>
+  </a>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
