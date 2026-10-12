@@ -308,8 +308,8 @@ document.querySelector(".quiz__form").addEventListener("input", updateQuiz);
 // ③ 本体カラーの切り替え
 // =========================================================
 const DEVICE_COLORS = {
-  snow: { body: "#f2efe9", screen: "#2b2f45", name: "スノーホワイト" },
-  charcoal: { body: "#3a3b40", screen: "#1c1d22", name: "チャコール" },
+  snow: { body: "#f2efe9", screen: "#2b2f45", name: "スノーホワイト", photo: "images/product-white.jpg" },
+  charcoal: { body: "#3a3b40", screen: "#1c1d22", name: "チャコール", photo: "images/product-charcoal.jpg" },
 };
 const priceVisual = document.querySelector(".price__visual");
 let deviceColor = "snow";
@@ -320,6 +320,9 @@ document.querySelectorAll(".swatch").forEach((btn) => {
     const c = DEVICE_COLORS[deviceColor];
     priceVisual.style.setProperty("--device", c.body);
     priceVisual.style.setProperty("--device-screen", c.screen);
+    // 写真があれば、写真も切り替える
+    const photo = priceVisual.querySelector(".photo");
+    if (photo) photo.src = c.photo;
     document.querySelectorAll(".swatch").forEach((b) => {
       b.classList.toggle("is-active", b === btn);
       b.setAttribute("aria-checked", b === btn);

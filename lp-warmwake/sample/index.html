@@ -50,6 +50,8 @@
 
       <div class="fv__visual" aria-hidden="true">
         <div class="fv__glow"></div>
+        <!-- 写真があれば写真、なければ下のイラストが出る（onerror で写真を消す） -->
+        <img src="images/product-white.jpg" alt="" class="photo photo--fv" onerror="this.remove()">
         <svg viewBox="0 0 240 180" class="product product--fv">
           <ellipse cx="120" cy="160" rx="90" ry="10" class="product__shadow"/>
           <rect x="30" y="50" width="180" height="104" rx="40" class="product__body"/>
@@ -286,33 +288,101 @@
       </ul>
     </section>
 
+    <!-- ===================== 8.5 暮らしの写真 ===================== -->
+    <section class="section gallery">
+      <p class="section__en reveal">With WARM WAKE</p>
+      <h2 class="section__title reveal">WARM WAKE のある、冬の朝。</h2>
+      <div class="gallery__list">
+        <figure class="gallery__item reveal">
+          <img src="images/night-glow.jpg" alt="夜明け前の寝室で、枕元の時計がやさしく光っている" class="photo" onerror="this.remove()">
+          <figcaption>6:45　音より先に、やさしい光で。</figcaption>
+        </figure>
+        <figure class="gallery__item gallery__item--morning reveal">
+          <img src="images/morning.jpg" alt="あたたかい部屋で、布団から起き上がる人" class="photo" onerror="this.remove()">
+          <figcaption>7:00　起きたら、もう部屋があたたかい。</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ===================== 8.6 スペック ===================== -->
+    <section class="section spec" id="spec">
+      <p class="section__en reveal">Spec</p>
+      <h2 class="section__title reveal">製品仕様</h2>
+      <dl class="spec__table reveal">
+        <div><dt>サイズ</dt><dd>幅 14 × 高さ 8 × 奥行 6 cm</dd></div>
+        <div><dt>重さ</dt><dd>約 320 g</dd></div>
+        <div><dt>電源</dt><dd>USB Type-C（ACアダプター付属）</dd></div>
+        <div><dt>対応エアコン</dt><dd>赤外線リモコンで操作する家庭用エアコン</dd></div>
+        <div><dt>通信</dt><dd>Wi-Fi（2.4GHz）／ Bluetooth</dd></div>
+        <div><dt>光</dt><dd>最大 300 lm ・ 電球色〜昼白色</dd></div>
+        <div><dt>アラーム音</dt><dd>5 種類（音量 10 段階）</dd></div>
+        <div><dt>カラー</dt><dd>スノーホワイト ／ チャコール</dd></div>
+        <div><dt>保証</dt><dd>お買い上げから 1 年間</dd></div>
+      </dl>
+      <p class="spec__note">※ 練習用の架空の製品です</p>
+    </section>
+
     <!-- ===================== 9. 使い方 ===================== -->
     <section class="section steps">
       <p class="section__en reveal">How to use</p>
       <h2 class="section__title reveal">設定は、3ステップ。</h2>
       <ol class="steps__list">
         <li class="step reveal"><span class="step__num">01</span><h3>枕元に置く</h3><p>エアコンが見える場所なら、どこでもOK。</p></li>
-        <li class="step reveal"><span class="step__num">02</span><h3>リモコンを向けて、1回押す</h3><p>エアコンの「暖房」ボタンの信号を覚えます。</p></li>
+        <li class="step reveal"><img src="images/remote.jpg" alt="時計にエアコンのリモコンを向けている手元" class="photo photo--step" onerror="this.remove()"><span class="step__num">02</span><h3>リモコンを向けて、1回押す</h3><p>エアコンの「暖房」ボタンの信号を覚えます。</p></li>
         <li class="step reveal"><span class="step__num">03</span><h3>3分のアンケートに答える</h3><p>あとは毎晩、何もしなくて大丈夫。</p></li>
       </ol>
     </section>
 
-    <!-- ===================== 10. 使っている人の声 ===================== -->
-    <section class="section voices">
-      <p class="section__en reveal">Voices</p>
+    <!-- ===================== 10. レビュー ===================== -->
+    <section class="section reviews">
+      <p class="section__en reveal">Reviews</p>
       <h2 class="section__title reveal">冬の朝が、変わった人たち。</h2>
-      <ul class="voices__list">
-        <li class="voice reveal"><p>「1限の日でも、布団からすっと出られるようになりました。タイマーのことを考えなくていいのが最高です。」</p><span>大学生・寒がり</span></li>
-        <li class="voice reveal"><p>「つけっぱなしをやめたら、のどの乾燥がかなりラクに。朝だけ温まるのがちょうどいい。」</p><span>新社会人・ふつう</span></li>
-        <li class="voice reveal"><p>「暑がりなので温めすぎが心配でしたが、だんだん好みの温度を覚えてくれました。」</p><span>在宅ワーク・暑がり</span></li>
+
+      <!-- 評価のまとめ -->
+      <div class="rating reveal">
+        <div class="rating__score">
+          <p class="rating__num">4.6</p>
+          <p class="rating-stars" aria-label="5つ星のうち4.6"><span style="--rate: 4.6"></span></p>
+          <p class="rating__count">128件のレビュー</p>
+        </div>
+        <ul class="rating__bars">
+          <li><span>★5</span><div class="bar"><i style="--w: 72%"></i></div><span>92</span></li>
+          <li><span>★4</span><div class="bar"><i style="--w: 19%"></i></div><span>24</span></li>
+          <li><span>★3</span><div class="bar"><i style="--w: 6%"></i></div><span>8</span></li>
+          <li><span>★2</span><div class="bar"><i style="--w: 2%"></i></div><span>3</span></li>
+          <li><span>★1</span><div class="bar"><i style="--w: 1%"></i></div><span>1</span></li>
+        </ul>
+      </div>
+
+      <ul class="reviews__list">
+        <li class="review reveal">
+          <p class="rating-stars rating-stars--small" aria-label="5つ星のうち5"><span style="--rate: 5"></span></p>
+          <h3>1限の日も、すっと起きられる</h3>
+          <p>タイマーのことを考えなくていいのが最高。起きたら部屋があったかいので、布団から出るのがこわくなくなりました。</p>
+          <p class="review__meta"><span class="tag">20代</span><span class="tag">寒がり</span><span class="tag">6畳</span>2026.1.12</p>
+        </li>
+        <li class="review reveal">
+          <p class="rating-stars rating-stars--small" aria-label="5つ星のうち4"><span style="--rate: 4"></span></p>
+          <h3>のどの乾燥がラクになった</h3>
+          <p>前はつけっぱなしで寝ていましたが、朝だけ温まるのでちょうどいい。設定がもう少し簡単だと星5でした。</p>
+          <p class="review__meta"><span class="tag">20代</span><span class="tag">ふつう</span><span class="tag">8畳</span>2026.1.8</p>
+        </li>
+        <li class="review reveal">
+          <p class="rating-stars rating-stars--small" aria-label="5つ星のうち5"><span style="--rate: 5"></span></p>
+          <h3>暑がりでも、ちょうどいい温度に</h3>
+          <p>温めすぎが心配でしたが、毎朝の「ちょうどよかった？」に答えていたら、1週間で好みの温度を覚えてくれました。</p>
+          <p class="review__meta"><span class="tag">30代</span><span class="tag">暑がり</span><span class="tag">10畳</span>2025.12.20</p>
+        </li>
       </ul>
-      <p class="voices__note">※ 練習用の架空ブランドのため、お客様の声はイメージです</p>
+      <p class="voices__note">※ 練習用の架空ブランドのため、評価・レビューはすべてイメージです</p>
     </section>
 
     <!-- ===================== 11. 価格・購入 ===================== -->
     <section class="section price" id="price">
       <div class="price__body">
         <div class="price__visual reveal">
+          <!-- 商品写真（色の切り替えで画像も変わる）。写真がなければイラストが出る -->
+          <img src="images/product-white.jpg" alt="WARM WAKE 本体" class="photo photo--price" onerror="this.remove()">
           <!-- 商品イラスト（色は --device で変わる） -->
           <svg viewBox="0 0 240 180" class="product" aria-label="WARM WAKE 本体">
             <ellipse cx="120" cy="160" rx="90" ry="10" class="product__shadow"/>
