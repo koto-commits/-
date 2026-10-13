@@ -24,6 +24,9 @@
   <!-- 舞うもの（花びら・綿毛・落ち葉・雪）。JS で作る -->
   <div class="particles" aria-hidden="true"></div>
 
+  <!-- マウスのうしろについてくる、ぼんやりした光（PCだけ） -->
+  <div class="orb" aria-hidden="true"></div>
+
   <!-- ===================== ヘッダー ===================== -->
   <header class="header">
     <a href="#" class="header__logo">花渡<span>HANAWATARI</span></a>
@@ -142,6 +145,12 @@
         <h1 class="hero__title">長い旅の、<br>ひと休みに。</h1>
         <p class="hero__season-caption"></p>
       </div>
+
+      <!-- 右上の小さな情報（架空の座標と創業年）。細かい文字は「上品さ」を出すための飾り -->
+      <p class="hero__meta" aria-hidden="true">
+        <span>N 35°41′ ／ E 140°52′</span>
+        <span>Since — unknown</span>
+      </p>
 
       <p class="hero__scroll">Scroll</p>
     </section>

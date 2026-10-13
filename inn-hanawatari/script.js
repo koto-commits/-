@@ -266,5 +266,34 @@ document.querySelector(".reserve__btn").addEventListener("click", () => {
   toast.timer = setTimeout(() => toast.classList.remove("is-show"), 3000);
 });
 
+// =========================================================
+// ⑦ マウスのうしろについてくる光（PCだけ）
+// マウスの位置へ「少しずつ」近づけることで、ふわっと遅れてついてくる
+// =========================================================
+const orb = document.querySelector(".orb");
+const canHover = window.matchMedia("(hover: hover)").matches;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+if (canHover && !reduceMotion) {
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+  let orbX = mouseX;
+  let orbY = mouseY;
+
+  window.addEventListener("mousemove", (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    body.classList.add("has-orb");
+  });
+
+  function followMouse() {
+    orbX += (mouseX - orbX) * 0.08; // 残りの距離の8%ずつ近づく
+    orbY += (mouseY - orbY) * 0.08;
+    orb.style.transform = `translate(${orbX}px, ${orbY}px)`;
+    requestAnimationFrame(followMouse);
+  }
+  followMouse();
+}
+
 // ---------- 最初に1回だけ実行 ----------
 setSeason(seasonOfToday());

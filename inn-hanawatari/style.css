@@ -1279,6 +1279,245 @@ img {
   }
 }
 
+/* =========================================================
+   高級感・神秘的な雰囲気の仕上げ
+   ========================================================= */
+:root {
+  --gold: #b9a27a;        /* シャンパンゴールド（細い線や飾り用） */
+  --night: #11151d;       /* 暗いセクションの背景 */
+  --night-ink: #e9e3d8;
+}
+
+/* --- 画面全体に、うっすらフィルムの粒子 --- */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* --- 写真：色を少し落として、映画のように --- */
+.hero__photo,
+.pinned__photo,
+.room__thumb img,
+.dish__img img {
+  filter: saturate(0.85) contrast(1.04);
+}
+
+/* 最初の画面：四隅を暗くして（ビネット）、視線を真ん中に */
+.hero::after {
+  background:
+    radial-gradient(ellipse at 60% 45%, transparent 45%, rgba(10, 14, 22, 0.45) 100%),
+    linear-gradient(180deg, rgba(10, 14, 22, 0.25) 0%, transparent 25%, transparent 55%, rgba(10, 14, 22, 0.5) 100%);
+}
+
+/* --- 文字：小さく、細く、字間を広く --- */
+.hero__title {
+  font-weight: 500;
+  font-size: clamp(34px, 5vw, 72px);
+  letter-spacing: 0.14em;
+  line-height: 1.6;
+}
+
+.hero__en {
+  font-size: 12px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+}
+
+.section-title,
+.season-card__title,
+.reserve__title {
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+/* 英語のラベル：大文字・細い線つき */
+.section-en {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 11px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+}
+
+.section-en::before {
+  content: "";
+  width: 40px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+/* 見出しの下に、小さな星の飾り */
+.section .section-title::after,
+.reserve__title::after {
+  content: "✦";
+  display: block;
+  margin-top: 12px;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 0;
+}
+
+/* 右上の小さな情報 */
+.hero__meta {
+  position: absolute;
+  top: 96px;
+  right: var(--side);
+  z-index: 2;
+  display: grid;
+  gap: 4px;
+  text-align: right;
+  font-family: var(--font-en);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* --- 暗いセクション（はじまりの言葉・ご予約・フッター）でメリハリを --- */
+.prologue,
+.reserve,
+.footer {
+  background: var(--night);
+  color: var(--night-ink);
+}
+
+.prologue {
+  position: relative;
+  overflow: hidden;
+}
+
+/* はじまりの言葉の後ろに、月明かりのようなぼんやりした光 */
+.prologue::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 60vmin;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(185, 162, 122, 0.22), transparent 65%);
+  animation: breathe 7s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { scale: 0.9; opacity: 0.7; }
+  50%      { scale: 1.08; opacity: 1; }
+}
+
+.prologue__text {
+  position: relative;
+  text-shadow: 0 0 18px rgba(233, 227, 216, 0.25);
+}
+
+.reserve {
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(185, 162, 122, 0.25), transparent 60%),
+    var(--night);
+}
+
+.reserve .section-en {
+  justify-content: center;
+  color: var(--gold);
+}
+
+.reserve__form {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.reserve__form label,
+.reserve__note {
+  color: rgba(233, 227, 216, 0.6);
+}
+
+.reserve__form input,
+.reserve__form select {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--night-ink);
+  color-scheme: dark; /* カレンダーなども暗い色に */
+}
+
+.reserve .btn {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--night);
+}
+
+.reserve .btn:hover {
+  background: transparent;
+  color: var(--gold);
+}
+
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(233, 227, 216, 0.5);
+}
+
+.footer__logo {
+  color: var(--night-ink);
+}
+
+/* --- 動き：ぜんぶ、ゆっくり --- */
+.reveal {
+  transition-duration: 1.8s;
+}
+
+/* 写真が「下から幕が上がるように」あらわれる */
+.dish .dish__img {
+  clip-path: inset(100% 0 0 0 round 999px 999px 16px 16px);
+  transition: clip-path 1.8s var(--ease) 0.2s;
+}
+
+.dish.is-show .dish__img {
+  clip-path: inset(0 0 0 0 round 999px 999px 16px 16px);
+}
+
+/* --- マウスのうしろの光 --- */
+.orb {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 60;
+  width: 260px;
+  height: 260px;
+  margin: -130px 0 0 -130px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 240, 210, 0.35), transparent 60%);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 0.8s;
+}
+
+.has-orb .orb {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .orb {
+    display: none; /* スマホ（マウスがない）では使わない */
+  }
+}
+
+@media (max-width: 768px) {
+  .hero__meta {
+    display: none;
+  }
+
+  .hero__title {
+    letter-spacing: 0.1em;
+  }
+}
+
+
 /* 動きを減らす設定の人向け */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1293,7 +1532,11 @@ img {
     transform: none;
     filter: none;
   }
-  .particles {
+  .particles,
+  .orb {
     display: none;
+  }
+  .dish .dish__img {
+    clip-path: none;
   }
 }
