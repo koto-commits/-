@@ -416,6 +416,7 @@ img {
 
 .hero__photo {
   object-fit: cover;
+  object-position: 60% center; /* 宿が写っている右寄りを中心に */
   z-index: 1;
 }
 
