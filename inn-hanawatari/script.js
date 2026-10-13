@@ -118,7 +118,7 @@ function setSeason(key) {
 
   // 写真があれば、季節の写真に切り替える（なければイラストのまま）
   heroPhoto.hidden = false;
-  heroPhoto.src = `images/hero-${key}.jpg`;
+  heroPhoto.src = `images/hero-${key}.webp`;
 
   // 季節のたのしみ（カードの中身）
   seasonCard.querySelector(".season-card__en").textContent = season.card.en;

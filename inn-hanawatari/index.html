@@ -6,6 +6,16 @@
   <title>花渡 HANAWATARI | 長い旅の、ひと休みに。</title>
   <meta name="description" content="海の見える丘の上、青い花畑にたたずむ白い石の宿（架空の宿・練習作品）">
 
+  <!-- シェアされたときのカード（OGP）。
+       公開したら、og:url と og:image を「https://〇〇.netlify.app/…」の完全なURLに書きかえる -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="花渡 HANAWATARI | 長い旅の、ひと休みに。">
+  <meta property="og:description" content="海の見える丘の上、青い花畑にたたずむ白い石の宿（架空の宿・練習作品）">
+  <meta property="og:url" content="https://example.netlify.app/">
+  <meta property="og:image" content="https://example.netlify.app/images/ogp.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#11151d">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Noto+Sans+JP:wght@300;400;500&family=Shippori+Mincho+B1:wght@500;700;800&display=swap" rel="stylesheet">
@@ -54,7 +64,7 @@
     <!-- ===================== 1. 最初の画面 ===================== -->
     <section class="hero">
       <div class="hero__scene">
-        <!-- 写真ができたら、季節ごとに images/hero-〇〇.jpg が表示される（なければ下のイラスト） -->
+        <!-- 写真ができたら、季節ごとに images/hero-〇〇.webp が表示される（なければ下のイラスト） -->
         <img class="hero__photo" alt="" hidden>
 
         <!-- 景色のイラスト。色は季節ごとの CSS 変数で変わる -->
@@ -146,9 +156,10 @@
         <p class="hero__season-caption"></p>
       </div>
 
-      <!-- 右上の小さな情報（架空の座標と創業年）。細かい文字は「上品さ」を出すための飾り -->
+      <!-- 右上の小さな情報。細かい文字は「上品さ」を出すための飾り
+           （架空の宿なので、実在の場所を指してしまう座標などは書かない） -->
       <p class="hero__meta" aria-hidden="true">
-        <span>N 35°41′ ／ E 140°52′</span>
+        <span>Somewhere by the sea</span>
         <span>Since — unknown</span>
       </p>
 
@@ -169,7 +180,7 @@
     <!-- ===================== 3. 丘のこと（背景が貼りつく） ===================== -->
     <section class="pinned" id="hill">
       <div class="pinned__bg pinned__bg--hill">
-        <img src="images/hill.jpg" alt="" class="pinned__photo" onerror="this.remove()">
+        <img src="images/hill.webp" alt="" class="pinned__photo" loading="lazy" decoding="async" onerror="this.remove()">
       </div>
       <div class="pinned__content">
         <article class="pinned__panel">
@@ -201,7 +212,7 @@
 
       <ul class="rooms__list">
         <li class="room reveal" data-room="flower">
-          <div class="room__thumb room__thumb--flower"><img src="images/room-flower.jpg" alt="花の間" onerror="this.remove()"></div>
+          <div class="room__thumb room__thumb--flower"><img src="images/room-flower.webp" alt="花の間" loading="lazy" decoding="async" onerror="this.remove()"></div>
           <p class="room__num">01</p>
           <div class="room__name"><h3>花の間</h3><span>Flower Room</span></div>
           <p class="room__desc">窓の外は、一面の花畑。朝いちばんの光が入る部屋。</p>
@@ -209,7 +220,7 @@
           <p class="room__price">¥28,000〜<small>／1泊2食・1名</small></p>
         </li>
         <li class="room reveal" data-room="sea">
-          <div class="room__thumb room__thumb--sea"><img src="images/room-sea.jpg" alt="海の間" onerror="this.remove()"></div>
+          <div class="room__thumb room__thumb--sea"><img src="images/room-sea.webp" alt="海の間" loading="lazy" decoding="async" onerror="this.remove()"></div>
           <p class="room__num">02</p>
           <div class="room__name"><h3>海の間</h3><span>Sea Room</span></div>
           <p class="room__desc">石のバルコニーから、水平線をひとりじめ。</p>
@@ -217,7 +228,7 @@
           <p class="room__price">¥34,000〜<small>／1泊2食・1名</small></p>
         </li>
         <li class="room reveal" data-room="star">
-          <div class="room__thumb room__thumb--star"><img src="images/room-star.jpg" alt="星の間" onerror="this.remove()"></div>
+          <div class="room__thumb room__thumb--star"><img src="images/room-star.webp" alt="星の間" loading="lazy" decoding="async" onerror="this.remove()"></div>
           <p class="room__num">03</p>
           <div class="room__name"><h3>星の間</h3><span>Star Room</span></div>
           <p class="room__desc">塔のいちばん上。天窓から、星をながめて眠る部屋。</p>
@@ -230,7 +241,7 @@
     <!-- ===================== 5. 暖炉の図書室（背景が貼りつく） ===================== -->
     <section class="pinned pinned--warm" id="library">
       <div class="pinned__bg pinned__bg--library">
-        <img src="images/library.jpg" alt="" class="pinned__photo" onerror="this.remove()">
+        <img src="images/library.webp" alt="" class="pinned__photo" loading="lazy" decoding="async" onerror="this.remove()">
         <!-- 写真がないときの、暖炉のイラスト -->
         <div class="fireplace" aria-hidden="true">
           <div class="shelf shelf--left"></div>
@@ -266,15 +277,15 @@
       <h2 class="section-title reveal">丘と海の、めぐみ。</h2>
       <div class="dining__grid">
         <figure class="dish reveal">
-          <div class="dish__img dish__img--1"><img src="images/dining-1.jpg" alt="朝ごはん" onerror="this.remove()"></div>
+          <div class="dish__img dish__img--1"><img src="images/dining-1.webp" alt="朝ごはん" loading="lazy" decoding="async" onerror="this.remove()"></div>
           <figcaption><span>Breakfast</span>焼きたてのパンと、丘のはちみつ</figcaption>
         </figure>
         <figure class="dish dish--tall reveal">
-          <div class="dish__img dish__img--2"><img src="images/dining-2.jpg" alt="夕ごはん" onerror="this.remove()"></div>
+          <div class="dish__img dish__img--2"><img src="images/dining-2.webp" alt="夕ごはん" loading="lazy" decoding="async" onerror="this.remove()"></div>
           <figcaption><span>Dinner</span>入り江でとれた魚の、石窯焼き</figcaption>
         </figure>
         <figure class="dish reveal">
-          <div class="dish__img dish__img--3"><img src="images/dining-3.jpg" alt="夜のひとさら" onerror="this.remove()"></div>
+          <div class="dish__img dish__img--3"><img src="images/dining-3.webp" alt="夜のひとさら" loading="lazy" decoding="async" onerror="this.remove()"></div>
           <figcaption><span>Night</span>暖炉で温めた、木の実のスープ</figcaption>
         </figure>
       </div>
