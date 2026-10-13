@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>花渡 HANAWATARI | 長い旅の、ひと休みに。</title>
+  <meta name="description" content="海の見える丘の上、青い花畑にたたずむ白い石の宿（架空の宿・練習作品）">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Noto+Sans+JP:wght@300;400;500&family=Shippori+Mincho+B1:wght@500;700;800&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-season="spring">
+
+  <!-- ===================== ローディング ===================== -->
+  <div class="loader" aria-hidden="true">
+    <p class="loader__name">花渡</p>
+    <p class="loader__en">HANAWATARI</p>
+  </div>
+
+  <!-- 舞うもの（花びら・綿毛・落ち葉・雪）。JS で作る -->
+  <div class="particles" aria-hidden="true"></div>
+
+  <!-- ===================== ヘッダー ===================== -->
+  <header class="header">
+    <a href="#" class="header__logo">花渡<span>HANAWATARI</span></a>
+    <a href="#reserve" class="header__reserve">ご予約</a>
+    <button class="menu-btn" aria-label="メニューを開く" aria-expanded="false">
+      <span></span><span></span>
+    </button>
+  </header>
+
+  <!-- ===================== ドロワーメニュー ===================== -->
+  <nav class="drawer" aria-label="メニュー" aria-hidden="true">
+    <ul class="drawer__list">
+      <li><a href="#hill"><span>The Hill</span>丘のこと</a></li>
+      <li><a href="#rooms"><span>Rooms</span>お部屋</a></li>
+      <li><a href="#library"><span>Fireside Library</span>暖炉の図書室</a></li>
+      <li><a href="#dining"><span>Dining</span>お食事</a></li>
+      <li><a href="#seasons"><span>Seasons</span>季節のたのしみ</a></li>
+      <li><a href="#access"><span>Access</span>道のり</a></li>
+      <li><a href="#reserve"><span>Reservation</span>ご予約</a></li>
+    </ul>
+    <p class="drawer__note">花渡は、練習用につくった架空の宿です。</p>
+  </nav>
+
+  <main>
+    <!-- ===================== 1. 最初の画面 ===================== -->
+    <section class="hero">
+      <div class="hero__scene">
+        <!-- 写真ができたら、季節ごとに images/hero-〇〇.jpg が表示される（なければ下のイラスト） -->
+        <img class="hero__photo" alt="" hidden>
+
+        <!-- 景色のイラスト。色は季節ごとの CSS 変数で変わる -->
+        <svg class="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs>
+            <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" class="sky-top"/>
+              <stop offset="100%" class="sky-bottom"/>
+            </linearGradient>
+            <pattern id="flowers" width="22" height="16" patternUnits="userSpaceOnUse">
+              <circle cx="4" cy="4" r="2.6" class="flower"/>
+              <circle cx="15" cy="11" r="2.2" class="flower"/>
+              <circle cx="11" cy="3" r="1.4" class="flower flower--light"/>
+            </pattern>
+            <radialGradient id="window-glow">
+              <stop offset="0%" stop-color="#ffcf8a" stop-opacity="1"/>
+              <stop offset="100%" stop-color="#ffcf8a" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+
+          <rect width="1600" height="900" fill="url(#sky)"/>
+
+          <!-- 太陽（冬と秋は低く、やわらかく） -->
+          <circle class="sun" cx="1220" cy="210" r="64"/>
+
+          <!-- 流れる雲 -->
+          <g class="clouds">
+            <g transform="translate(180 170)"><ellipse rx="110" ry="34"/><ellipse cx="70" cy="-20" rx="70" ry="34"/><ellipse cx="-60" cy="-12" rx="60" ry="26"/></g>
+            <g transform="translate(760 120)"><ellipse rx="140" ry="38"/><ellipse cx="90" cy="-22" rx="80" ry="36"/></g>
+            <g transform="translate(1420 300)"><ellipse rx="100" ry="28"/><ellipse cx="-50" cy="-18" rx="60" ry="28"/></g>
+          </g>
+
+          <!-- 鳥 -->
+          <g class="birds">
+            <path d="M560 260 q14 -12 28 0 q14 -12 28 0"/>
+            <path d="M620 300 q10 -9 20 0 q10 -9 20 0"/>
+          </g>
+
+          <!-- 海 -->
+          <rect class="sea" y="470" width="1600" height="160"/>
+          <g class="sea-light">
+            <path d="M200 520 h120 M520 560 h80 M900 505 h140 M1250 545 h100"/>
+          </g>
+
+          <!-- 遠くの丘 -->
+          <path class="hill-far" d="M0 640 Q300 560 620 600 T1200 580 T1600 600 V900 H0Z"/>
+
+          <!-- 手前の丘と花畑 -->
+          <path class="hill" d="M0 900 V700 Q380 590 820 640 T1600 590 V900Z"/>
+          <path d="M0 900 V700 Q380 590 820 640 T1600 590 V900Z" fill="url(#flowers)" class="flower-field"/>
+
+          <!-- 左の大きな木 -->
+          <g class="tree">
+            <rect x="214" y="520" width="18" height="150" rx="6" class="tree__trunk"/>
+            <circle cx="224" cy="500" r="70" class="tree__leaf"/>
+            <circle cx="170" cy="540" r="48" class="tree__leaf"/>
+            <circle cx="282" cy="535" r="52" class="tree__leaf"/>
+          </g>
+
+          <!-- 古い柱のなごり -->
+          <g class="ruins">
+            <rect x="900" y="560" width="22" height="70" rx="3"/>
+            <rect x="890" y="552" width="42" height="12" rx="2"/>
+            <rect x="950" y="590" width="20" height="44" rx="3"/>
+          </g>
+
+          <!-- 白い石の宿 -->
+          <g class="inn">
+            <rect x="1080" y="470" width="300" height="140" rx="4" class="stone"/>
+            <rect x="1070" y="460" width="320" height="16" rx="3" class="stone stone--edge"/>
+            <!-- 丸い塔 -->
+            <rect x="1310" y="380" width="70" height="96" class="stone"/>
+            <path d="M1306 384 a39 39 0 0 1 78 0Z" class="dome"/>
+            <!-- アーチの窓（夜や冬は、あたたかく光る） -->
+            <g class="arches">
+              <path d="M1110 610 v-60 a22 22 0 0 1 44 0 v60Z"/>
+              <path d="M1176 610 v-60 a22 22 0 0 1 44 0 v60Z"/>
+              <path d="M1242 610 v-60 a22 22 0 0 1 44 0 v60Z"/>
+              <path d="M1330 440 v-26 a15 15 0 0 1 30 0 v26Z"/>
+            </g>
+            <circle cx="1200" cy="580" r="120" fill="url(#window-glow)" class="glow"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="hero__text">
+        <p class="hero__en">An inn for long journeys</p>
+        <h1 class="hero__title">長い旅の、<br>ひと休みに。</h1>
+        <p class="hero__season-caption"></p>
+      </div>
+
+      <p class="hero__scroll">Scroll</p>
+    </section>
+
+    <!-- ===================== 2. はじまりの言葉 ===================== -->
+    <section class="prologue">
+      <p class="prologue__text reveal">
+        海の見える丘のうえに、<br>
+        白い石でできた、ちいさな宿があります。<br>
+        いつ建てられたのか、知る人はもういません。<br>
+        ただ、旅の人が来るたびに、<br>
+        いつもと同じ灯りで、迎えてくれます。
+      </p>
+    </section>
+
+    <!-- ===================== 3. 丘のこと（背景が貼りつく） ===================== -->
+    <section class="pinned" id="hill">
+      <div class="pinned__bg pinned__bg--hill">
+        <img src="images/hill.jpg" alt="" class="pinned__photo" onerror="this.remove()">
+      </div>
+      <div class="pinned__content">
+        <article class="pinned__panel">
+          <div class="pinned__card">
+            <p class="section-en">The Hill</p>
+            <h2 class="section-title">丘いっぱいの、青。</h2>
+            <p>春になると、丘は小さな青い花でうめつくされます。<br>風がふくたびに、海と空と花の境目が、わからなくなる。</p>
+          </div>
+        </article>
+        <article class="pinned__panel">
+          <div class="pinned__card">
+            <h2 class="section-title">耳をすますと、波の音。</h2>
+            <p>宿の裏の小道を下ると、白い砂の入り江があります。<br>朝の散歩には、ちょうどいい距離です。</p>
+          </div>
+        </article>
+        <article class="pinned__panel">
+          <div class="pinned__card">
+            <h2 class="section-title">古い柱の、なごり。</h2>
+            <p>丘のあちこちに残る、白い石の柱。<br>ここに何があったのか、想像しながら歩くのも、旅のたのしみです。</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== 4. お部屋 ===================== -->
+    <section class="section rooms" id="rooms">
+      <p class="section-en reveal">Rooms</p>
+      <h2 class="section-title reveal">三つの、旅の部屋。</h2>
+
+      <ul class="rooms__list">
+        <li class="room reveal" data-room="flower">
+          <div class="room__thumb room__thumb--flower"><img src="images/room-flower.jpg" alt="花の間" onerror="this.remove()"></div>
+          <p class="room__num">01</p>
+          <div class="room__name"><h3>花の間</h3><span>Flower Room</span></div>
+          <p class="room__desc">窓の外は、一面の花畑。朝いちばんの光が入る部屋。</p>
+          <dl class="room__spec"><dt>定員</dt><dd>2名</dd><dt>広さ</dt><dd>32㎡</dd></dl>
+          <p class="room__price">¥28,000〜<small>／1泊2食・1名</small></p>
+        </li>
+        <li class="room reveal" data-room="sea">
+          <div class="room__thumb room__thumb--sea"><img src="images/room-sea.jpg" alt="海の間" onerror="this.remove()"></div>
+          <p class="room__num">02</p>
+          <div class="room__name"><h3>海の間</h3><span>Sea Room</span></div>
+          <p class="room__desc">石のバルコニーから、水平線をひとりじめ。</p>
+          <dl class="room__spec"><dt>定員</dt><dd>2〜3名</dd><dt>広さ</dt><dd>40㎡</dd></dl>
+          <p class="room__price">¥34,000〜<small>／1泊2食・1名</small></p>
+        </li>
+        <li class="room reveal" data-room="star">
+          <div class="room__thumb room__thumb--star"><img src="images/room-star.jpg" alt="星の間" onerror="this.remove()"></div>
+          <p class="room__num">03</p>
+          <div class="room__name"><h3>星の間</h3><span>Star Room</span></div>
+          <p class="room__desc">塔のいちばん上。天窓から、星をながめて眠る部屋。</p>
+          <dl class="room__spec"><dt>定員</dt><dd>2名</dd><dt>広さ</dt><dd>28㎡</dd></dl>
+          <p class="room__price">¥38,000〜<small>／1泊2食・1名</small></p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ===================== 5. 暖炉の図書室（背景が貼りつく） ===================== -->
+    <section class="pinned pinned--warm" id="library">
+      <div class="pinned__bg pinned__bg--library">
+        <img src="images/library.jpg" alt="" class="pinned__photo" onerror="this.remove()">
+        <!-- 写真がないときの、暖炉のイラスト -->
+        <div class="fireplace" aria-hidden="true">
+          <div class="shelf shelf--left"></div>
+          <div class="shelf shelf--right"></div>
+          <div class="hearth">
+            <div class="hearth__fire">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="fire-light"></div>
+        </div>
+      </div>
+      <div class="pinned__content">
+        <article class="pinned__panel">
+          <div class="pinned__card">
+            <p class="section-en">Fireside Library</p>
+            <h2 class="section-title">雪の日は、<br>暖炉のそばで。</h2>
+            <p>宿の奥には、旅の人が置いていった本がならぶ図書室があります。<br>ぱちぱちと薪のはぜる音を聞きながら、好きなだけどうぞ。</p>
+          </div>
+        </article>
+        <article class="pinned__panel">
+          <div class="pinned__card">
+            <h2 class="section-title">外では、焚き火を。</h2>
+            <p>晴れた冬の夜は、中庭で焚き火を。<br>あたたかい飲みものと毛布は、いつでもご用意しています。</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== 6. お食事 ===================== -->
+    <section class="section dining" id="dining">
+      <p class="section-en reveal">Dining</p>
+      <h2 class="section-title reveal">丘と海の、めぐみ。</h2>
+      <div class="dining__grid">
+        <figure class="dish reveal">
+          <div class="dish__img dish__img--1"><img src="images/dining-1.jpg" alt="朝ごはん" onerror="this.remove()"></div>
+          <figcaption><span>Breakfast</span>焼きたてのパンと、丘のはちみつ</figcaption>
+        </figure>
+        <figure class="dish dish--tall reveal">
+          <div class="dish__img dish__img--2"><img src="images/dining-2.jpg" alt="夕ごはん" onerror="this.remove()"></div>
+          <figcaption><span>Dinner</span>入り江でとれた魚の、石窯焼き</figcaption>
+        </figure>
+        <figure class="dish reveal">
+          <div class="dish__img dish__img--3"><img src="images/dining-3.jpg" alt="夜のひとさら" onerror="this.remove()"></div>
+          <figcaption><span>Night</span>暖炉で温めた、木の実のスープ</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ===================== 7. 季節のたのしみ ===================== -->
+    <section class="section seasons" id="seasons">
+      <p class="section-en reveal">Seasons</p>
+      <h2 class="section-title reveal">いつ来ても、ちがう丘。</h2>
+
+      <div class="season-tabs reveal" role="tablist" aria-label="季節">
+        <button role="tab" data-season="spring">春</button>
+        <button role="tab" data-season="summer">夏</button>
+        <button role="tab" data-season="autumn">秋</button>
+        <button role="tab" data-season="winter">冬</button>
+      </div>
+
+      <div class="season-card reveal" aria-live="polite">
+        <p class="season-card__en"></p>
+        <h3 class="season-card__title"></h3>
+        <p class="season-card__text"></p>
+        <ul class="season-card__list"></ul>
+      </div>
+    </section>
+
+    <!-- ===================== 8. 道のり ===================== -->
+    <section class="section access" id="access">
+      <p class="section-en reveal">Access</p>
+      <h2 class="section-title reveal">花渡への、道のり。</h2>
+
+      <div class="access__body">
+        <svg class="map reveal" viewBox="0 0 600 420" role="img" aria-label="花渡までの地図（架空）">
+          <rect width="600" height="420" class="map__sea"/>
+          <path class="map__land" d="M0 0 H600 V160 Q520 200 470 260 Q430 330 340 340 Q240 350 180 300 Q120 250 0 270Z"/>
+          <path class="map__road" d="M60 60 Q160 120 230 150 T380 230 Q420 250 440 230"/>
+          <circle cx="60" cy="60" r="8" class="map__station"/>
+          <text x="78" y="56" class="map__label">花見崎駅</text>
+          <g class="map__inn" transform="translate(440 228)">
+            <circle r="16"/>
+            <text y="5" text-anchor="middle">花</text>
+          </g>
+          <text x="400" y="200" class="map__label">花渡</text>
+          <text x="420" y="380" class="map__label map__label--sea">青凪の海</text>
+          <text x="250" y="120" class="map__label map__label--small">送迎バス 約15分</text>
+        </svg>
+
+        <dl class="access__info reveal">
+          <div><dt>住所</dt><dd>青凪郡 花見崎町 丘の上 1（架空）</dd></div>
+          <div><dt>電車</dt><dd>花見崎駅から、宿の送迎バスで約15分</dd></div>
+          <div><dt>お車</dt><dd>海沿いの道を北へ。白い柱が見えたら、もうすぐです</dd></div>
+          <div><dt>チェックイン</dt><dd>15:00 〜 18:00</dd></div>
+          <div><dt>チェックアウト</dt><dd>〜 11:00</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ===================== 9. ご予約 ===================== -->
+    <section class="reserve" id="reserve">
+      <p class="section-en reveal">Reservation</p>
+      <h2 class="reserve__title reveal">旅の途中で、<br>お待ちしています。</h2>
+
+      <form class="reserve__form reveal" onsubmit="return false;">
+        <label>チェックイン<input type="date" class="reserve__date"></label>
+        <label>泊数
+          <select class="reserve__nights"><option>1泊</option><option>2泊</option><option>3泊</option></select>
+        </label>
+        <label>お部屋
+          <select class="reserve__room"><option>花の間</option><option>海の間</option><option>星の間</option></select>
+        </label>
+        <button class="btn reserve__btn">空室をさがす</button>
+      </form>
+      <p class="reserve__note">※ 練習用につくった架空の宿のため、実際のご予約はできません。</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="footer__logo">花渡</p>
+    <p class="footer__en">HANAWATARI — an inn for long journeys</p>
+    <small>&copy; 2026 HANAWATARI (practice / fictional inn)</small>
+  </footer>
+
+  <!-- 季節の切り替え（画面の左下にずっと表示） -->
+  <div class="season-switch" role="radiogroup" aria-label="季節を切り替える">
+    <button data-season="spring" role="radio" aria-label="春">春</button>
+    <button data-season="summer" role="radio" aria-label="夏">夏</button>
+    <button data-season="autumn" role="radio" aria-label="秋">秋</button>
+    <button data-season="winter" role="radio" aria-label="冬">冬</button>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

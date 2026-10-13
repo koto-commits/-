@@ -1,0 +1,1298 @@
+/* =========================================================
+   花渡 HANAWATARI style.css
+   季節ごとの色は script.js の SEASONS が CSS 変数に書きこむ。
+   ここにある :root の値は「春」の初期値。
+   ========================================================= */
+
+:root {
+  /* ↓ 季節で変わる色 */
+  --bg: #f5f2ec;          /* ページの背景 */
+  --ink: #2f3a4a;         /* 文字 */
+  --sub: #7d8794;         /* 薄い文字 */
+  --accent: #5d86c8;      /* アクセント（春はネモフィラの青） */
+  --line: #e2ddd3;
+  --card: #fbf9f5;
+  --sky1: #8ec5f2;
+  --sky2: #e8f4fb;
+  --sun: #fff4cf;
+  --sea: #6aa7d6;
+  --hill-far: #b9d4c5;
+  --hill: #9cc79b;
+  --flower: #7ea6e0;
+  --flower-light: #ffffff;
+  --tree: #79a77d;
+  --stone: #f4f1ea;
+  --window: #3b4a5a;
+  --glow: 0;              /* 窓の灯りの強さ（0〜1） */
+  --sun-y: 0px;           /* 太陽の高さ（下げると夕方っぽく） */
+
+  --font-head: "Shippori Mincho B1", serif;
+  --font-body: "Noto Sans JP", sans-serif;
+  --font-en: "Marcellus", serif;
+  --side: clamp(20px, 6vw, 96px);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- リセット ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 300;
+  line-height: 2;
+  letter-spacing: 0.06em;
+  transition: background-color 1.2s, color 1.2s; /* 季節を変えたとき、色がゆっくり移る */
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+/* hidden の付いたものは、必ず隠す（img の display: block に負けないように） */
+[hidden] {
+  display: none !important;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ---------- 共通 ---------- */
+.section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 140px var(--side);
+}
+
+.section-en {
+  font-family: var(--font-en);
+  font-size: 15px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  transition: color 1.2s;
+}
+
+.section-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: clamp(26px, 3.4vw, 40px);
+  line-height: 1.6;
+  margin: 8px 0 24px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 14px 40px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-head);
+  letter-spacing: 0.15em;
+  transition: background 0.4s, color 0.4s;
+}
+
+.btn:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+/* スクロールでふわっと（JS が .is-show を付ける） */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  filter: blur(4px);
+  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease), filter 1.2s var(--ease);
+}
+
+.reveal.is-show {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+/* =========================================================
+   ローディング
+   ========================================================= */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  background: var(--bg);
+  transition: opacity 1s 0.2s, visibility 1s 0.2s;
+}
+
+.loader__name {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 44px;
+  letter-spacing: 0.4em;
+  margin-right: -0.4em; /* 字間の分だけずれるのを直す */
+  animation: loader-in 1.4s var(--ease) both;
+}
+
+.loader__en {
+  font-family: var(--font-en);
+  font-size: 12px;
+  letter-spacing: 0.5em;
+  color: var(--sub);
+  animation: loader-in 1.4s 0.3s var(--ease) both;
+}
+
+@keyframes loader-in {
+  from { opacity: 0; transform: translateY(12px); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+/* 読みこみが終わったら（JS が付ける）、ふわっと消える */
+.is-loaded .loader {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* =========================================================
+   舞うもの（花びら・綿毛・落ち葉・雪）
+   ========================================================= */
+.particles {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  top: -40px;
+  animation: drift linear infinite;
+}
+
+@keyframes drift {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(40px, 26vh) rotate(100deg); }
+  50%  { transform: translate(-30px, 52vh) rotate(200deg); }
+  75%  { transform: translate(30px, 78vh) rotate(290deg); }
+  100% { transform: translate(-10px, 110vh) rotate(380deg); }
+}
+
+/* 季節ごとの形 */
+[data-season="spring"] .particle {
+  width: 12px;
+  height: 9px;
+  border-radius: 0 100% 0 100%; /* 花びら */
+  background: #8db3f0;
+  opacity: 0.8;
+}
+
+[data-season="summer"] .particle {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;           /* 綿毛 */
+  background: #fff;
+  box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.8);
+  opacity: 0.85;
+}
+
+[data-season="autumn"] .particle {
+  width: 13px;
+  height: 9px;
+  border-radius: 0 100% 0 100%; /* 落ち葉 */
+  background: #d9824a;
+  opacity: 0.85;
+}
+
+[data-season="autumn"] .particle:nth-child(3n) {
+  background: #c9a144;
+}
+
+[data-season="winter"] .particle {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;           /* 雪 */
+  background: #fff;
+  opacity: 0.9;
+}
+
+/* =========================================================
+   ヘッダー・ドロワー
+   ========================================================= */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 72px;
+  padding: 0 var(--side);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 200;
+  /* 最初の画面の上では白い文字。スクロールしたら・メニューを開いたら、ふつうの色に */
+  color: #fff;
+  text-shadow: 0 1px 12px rgba(20, 30, 50, 0.3);
+  transition: background 0.6s, color 0.6s;
+}
+
+.is-scrolled .header,
+.is-menu-open .header {
+  color: var(--ink);
+  text-shadow: none;
+}
+
+/* 少しスクロールしたら、背景をつける（JS が .is-scrolled を付ける） */
+.is-scrolled .header {
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.header__logo {
+  margin-right: auto;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.2em;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.header__logo span {
+  font-family: var(--font-en);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  opacity: 0.75;
+}
+
+.header__reserve {
+  padding: 6px 22px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.menu-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+}
+
+.menu-btn span {
+  position: absolute;
+  left: 10px;
+  width: 24px;
+  height: 1px;
+  background: currentColor;
+  transition: transform 0.5s var(--ease), top 0.5s var(--ease);
+}
+
+.menu-btn span:nth-child(1) { top: 18px; }
+.menu-btn span:nth-child(2) { top: 26px; }
+
+.is-menu-open .menu-btn span:nth-child(1) { top: 22px; transform: rotate(30deg); }
+.is-menu-open .menu-btn span:nth-child(2) { top: 22px; transform: rotate(-30deg); }
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(440px, 100%);
+  height: 100%;
+  padding: 120px 48px 48px;
+  z-index: 150;
+  background: var(--card);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.08);
+  transform: translateX(100%);
+  transition: transform 0.7s var(--ease), background 1.2s;
+  overflow-y: auto;
+}
+
+.is-menu-open .drawer {
+  transform: none;
+}
+
+.drawer__list li {
+  border-bottom: 1px solid var(--line);
+  /* 開いたとき、上から順番に出てくる */
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.6s, transform 0.6s var(--ease);
+}
+
+.is-menu-open .drawer__list li {
+  opacity: 1;
+  transform: none;
+}
+
+.is-menu-open .drawer__list li:nth-child(2) { transition-delay: 0.05s; }
+.is-menu-open .drawer__list li:nth-child(3) { transition-delay: 0.1s; }
+.is-menu-open .drawer__list li:nth-child(4) { transition-delay: 0.15s; }
+.is-menu-open .drawer__list li:nth-child(5) { transition-delay: 0.2s; }
+.is-menu-open .drawer__list li:nth-child(6) { transition-delay: 0.25s; }
+.is-menu-open .drawer__list li:nth-child(7) { transition-delay: 0.3s; }
+
+.drawer__list a {
+  display: block;
+  padding: 16px 0;
+  font-family: var(--font-head);
+  font-size: 18px;
+}
+
+.drawer__list span {
+  display: block;
+  font-family: var(--font-en);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  line-height: 1.4;
+}
+
+.drawer__note {
+  margin-top: 32px;
+  font-size: 12px;
+  color: var(--sub);
+}
+
+/* =========================================================
+   1. 最初の画面
+   ========================================================= */
+.hero {
+  position: relative;
+  height: 100vh;
+  min-height: 600px;
+  overflow: hidden;
+}
+
+.hero__scene,
+.hero__photo,
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero__photo {
+  object-fit: cover;
+  z-index: 1;
+}
+
+/* 景色がゆっくり近づいてくる（写真でもイラストでも） */
+.scene,
+.hero__photo {
+  animation: slow-zoom 24s ease-in-out infinite alternate;
+}
+
+@keyframes slow-zoom {
+  from { transform: scale(1); }
+  to   { transform: scale(1.08); }
+}
+
+/* --- イラストの色（季節の変数を使う） --- */
+.scene * { transition: fill 1.2s, stop-color 1.2s, opacity 1.2s, transform 1.2s; }
+.sky-top        { stop-color: var(--sky1); }
+.sky-bottom     { stop-color: var(--sky2); }
+.sun            { fill: var(--sun); transform: translateY(var(--sun-y)); }
+.clouds         { fill: #fff; opacity: 0.85; animation: clouds 60s linear infinite alternate; }
+.birds path     { fill: none; stroke: rgba(40, 50, 70, 0.55); stroke-width: 3; stroke-linecap: round; }
+.birds          { animation: birds 18s ease-in-out infinite alternate; }
+.sea            { fill: var(--sea); }
+.sea-light path { stroke: rgba(255, 255, 255, 0.7); stroke-width: 3; stroke-linecap: round; }
+.hill-far       { fill: var(--hill-far); }
+.hill           { fill: var(--hill); }
+.flower         { fill: var(--flower); }
+.flower--light  { fill: var(--flower-light); }
+.tree__trunk    { fill: #8a6e55; }
+.tree__leaf     { fill: var(--tree); }
+.ruins rect     { fill: var(--stone); stroke: rgba(0, 0, 0, 0.08); }
+.stone          { fill: var(--stone); stroke: rgba(0, 0, 0, 0.08); }
+.dome           { fill: var(--stone); stroke: rgba(0, 0, 0, 0.1); }
+.arches path    { fill: var(--window); }
+.glow           { opacity: var(--glow); }
+
+/* 窓の灯りが、ろうそくのようにゆらぐ */
+.glow {
+  animation: flicker 3s ease-in-out infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+
+@keyframes clouds {
+  to { transform: translateX(80px); }
+}
+
+@keyframes birds {
+  to { transform: translate(120px, -30px); }
+}
+
+.hero__text {
+  position: absolute;
+  left: var(--side);
+  bottom: 18vh;
+  z-index: 2;
+  color: #fff;
+  text-shadow: 0 2px 24px rgba(30, 40, 60, 0.35);
+}
+
+/* 写真もイラストも明るいので、文字の下にうっすら影 */
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, transparent 50%, rgba(20, 30, 50, 0.35));
+  pointer-events: none;
+}
+
+.hero__en {
+  font-family: var(--font-en);
+  letter-spacing: 0.3em;
+  font-size: 14px;
+}
+
+.hero__title {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: clamp(40px, 6.4vw, 88px);
+  line-height: 1.4;
+  margin: 8px 0 16px;
+}
+
+/* 1文字ずつ（JS で <span> に分けて）ふわっと出す */
+.hero__title .char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(0.4em);
+  filter: blur(8px);
+  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease), filter 1.2s var(--ease);
+}
+
+.is-loaded .hero__title .char {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+.hero__season-caption {
+  font-family: var(--font-head);
+  font-size: 15px;
+  opacity: 0.95;
+}
+
+.hero__scroll {
+  position: absolute;
+  right: var(--side);
+  bottom: 40px;
+  z-index: 2;
+  color: #fff;
+  font-family: var(--font-en);
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  writing-mode: vertical-rl;
+  padding-bottom: 64px;
+}
+
+/* 下に流れていく線 */
+.hero__scroll::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 1px;
+  height: 56px;
+  background: currentColor;
+  transform-origin: top;
+  animation: scroll-line 2.4s var(--ease) infinite;
+}
+
+@keyframes scroll-line {
+  0%   { transform: scaleY(0); }
+  50%  { transform: scaleY(1); transform-origin: top; }
+  51%  { transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+/* =========================================================
+   2. はじまりの言葉（縦書き）
+   ========================================================= */
+.prologue {
+  display: grid;
+  place-items: center;
+  padding: 160px var(--side);
+}
+
+.prologue__text {
+  writing-mode: vertical-rl;
+  font-family: var(--font-head);
+  font-size: clamp(16px, 1.6vw, 20px);
+  line-height: 2.6;
+  letter-spacing: 0.3em;
+  max-height: 32em;
+}
+
+/* =========================================================
+   3・5. 背景が貼りつくセクション
+   ========================================================= */
+.pinned {
+  position: relative;
+}
+
+/* 背景：画面に貼りついたまま */
+.pinned__bg {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.pinned__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 写真がないときの「丘」の背景（花畑の模様） */
+.pinned__bg--hill {
+  background:
+    radial-gradient(circle at 20% 30%, color-mix(in srgb, var(--flower) 60%, transparent) 0 3px, transparent 4px) 0 0 / 26px 22px,
+    radial-gradient(circle at 70% 70%, color-mix(in srgb, var(--flower-light) 80%, transparent) 0 2px, transparent 3px) 0 0 / 34px 28px,
+    linear-gradient(180deg, var(--sky1) 0 28%, var(--sea) 28% 40%, var(--hill) 40%);
+  transition: background 1.2s;
+}
+
+/* 中身：背景の上を流れていく */
+.pinned__content {
+  position: relative;
+  margin-top: -100vh; /* 背景と同じ場所から始める */
+  padding: 0 var(--side);
+}
+
+.pinned__panel {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 520px;
+}
+
+/* 文字のうしろに、すりガラスのカード */
+.pinned__card {
+  padding: 40px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+  backdrop-filter: blur(8px);
+  transition: background 1.2s;
+}
+
+.pinned__card .section-title {
+  margin-bottom: 16px;
+}
+
+/* 2枚目以降は右に寄せて、リズムをつける */
+.pinned__panel:nth-child(even) {
+  margin-left: auto;
+}
+
+/* --- 暖炉の図書室 --- */
+.pinned--warm {
+  --card: #2a201c;
+  color: #f4e9dc;
+}
+
+.pinned--warm .section-en {
+  color: #f0b27a;
+}
+
+.pinned__bg--library {
+  background: #1d1613;
+}
+
+.fireplace {
+  position: absolute;
+  inset: 0;
+}
+
+/* 本棚：線の模様で本の背表紙を表現 */
+.shelf {
+  position: absolute;
+  top: 8%;
+  bottom: 18%;
+  width: 26%;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 82px, #3b2a20 82px 92px),
+    repeating-linear-gradient(90deg, #6b3f2e 0 14px, #8a6a3e 14px 24px, #4e5b46 24px 36px, #7a4f5b 36px 46px, #a58a5c 46px 54px, #3d4a5e 54px 66px);
+  opacity: 0.55;
+  border: 10px solid #3b2a20;
+}
+
+.shelf--left  { left: 4%; }
+.shelf--right { right: 4%; }
+
+.hearth {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  width: min(340px, 40vw);
+  aspect-ratio: 1 / 0.8;
+  translate: -50% 0;
+  background: #2a1d17;
+  border: 18px solid #6e6259;
+  border-bottom: none;
+  border-radius: 999px 999px 0 0;
+  overflow: hidden;
+}
+
+.hearth__fire {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 60%;
+  height: 70%;
+  translate: -50% 0;
+}
+
+.hearth__fire span {
+  position: absolute;
+  bottom: 0;
+  width: 40%;
+  height: 100%;
+  border-radius: 50% 50% 40% 40% / 70% 70% 30% 30%;
+  background: radial-gradient(ellipse at 50% 90%, #fff3c4 0%, #ffb347 30%, #e8632b 65%, transparent 70%);
+  filter: blur(2px);
+  transform-origin: bottom center;
+  animation: fire 1.6s ease-in-out infinite alternate;
+}
+
+.hearth__fire span:nth-child(1) { left: 0;   height: 70%; animation-delay: -0.4s; }
+.hearth__fire span:nth-child(2) { left: 30%; }
+.hearth__fire span:nth-child(3) { left: 60%; height: 80%; animation-delay: -0.9s; }
+
+@keyframes fire {
+  0%   { transform: scaleY(0.9) skewX(-3deg); }
+  50%  { transform: scaleY(1.05) skewX(2deg); }
+  100% { transform: scaleY(0.95) skewX(-1deg); }
+}
+
+/* 部屋全体を照らす、ゆらぐ灯り */
+.fire-light {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 85%, rgba(255, 160, 80, 0.45), transparent 60%);
+  animation: fire-light 2.2s ease-in-out infinite alternate;
+}
+
+@keyframes fire-light {
+  from { opacity: 0.75; }
+  to   { opacity: 1; }
+}
+
+/* 写真がある場合は、イラストを隠す */
+.pinned__bg:has(.pinned__photo) .fireplace {
+  display: none;
+}
+
+/* =========================================================
+   4. お部屋（リスト。PCではマウスを乗せると写真が出る）
+   ========================================================= */
+.rooms__list {
+  margin-top: 40px;
+  border-top: 1px solid var(--line);
+}
+
+.room {
+  position: relative;
+  display: grid;
+  grid-template-columns: 60px 1.2fr 2fr auto auto;
+  align-items: center;
+  gap: 32px;
+  padding: 36px 0;
+  border-bottom: 1px solid var(--line);
+  transition: background 0.5s;
+}
+
+.room__num {
+  font-family: var(--font-en);
+  color: var(--accent);
+  font-size: 20px;
+}
+
+.room__name h3 {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.4;
+}
+
+.room__name span {
+  font-family: var(--font-en);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--sub);
+}
+
+.room__desc {
+  font-size: 14px;
+  color: var(--sub);
+}
+
+.room__spec {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0 12px;
+  font-size: 13px;
+}
+
+.room__spec dt {
+  color: var(--sub);
+}
+
+.room__price {
+  font-family: var(--font-head);
+  font-size: 18px;
+  white-space: nowrap;
+}
+
+.room__price small {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--sub);
+}
+
+/* 写真（ないときは色のグラデーション） */
+.room__thumb {
+  position: absolute;
+  right: 22%;
+  top: 50%;
+  width: 280px;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  opacity: 0;
+  translate: 0 -40%;
+  rotate: -3deg;
+  pointer-events: none;
+  z-index: 3;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.35);
+  transition: opacity 0.5s, translate 0.6s var(--ease), rotate 0.6s var(--ease);
+}
+
+.room__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.room__thumb--flower { background: linear-gradient(160deg, #cfe3f7, #7ea6e0 60%, #9cc79b); }
+.room__thumb--sea    { background: linear-gradient(160deg, #e8f4fb, #6aa7d6 55%, #f4f1ea); }
+.room__thumb--star   { background: radial-gradient(circle at 30% 30%, #fff 0 1px, transparent 2px) 0 0 / 30px 30px, linear-gradient(160deg, #1d2440, #3c4a7a); }
+
+@media (hover: hover) {
+  .room:hover {
+    background: var(--card);
+  }
+
+  .room:hover .room__thumb {
+    opacity: 1;
+    translate: 0 -50%;
+    rotate: 2deg;
+  }
+}
+
+/* =========================================================
+   6. お食事
+   ========================================================= */
+.dining__grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 28px;
+  align-items: start;
+  margin-top: 40px;
+}
+
+.dish__img {
+  aspect-ratio: 3 / 4;
+  border-radius: 999px 999px 16px 16px; /* 上がアーチ型（石の宿の窓のイメージ） */
+  overflow: hidden;
+}
+
+.dish__img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s var(--ease);
+}
+
+.dish:hover .dish__img img {
+  transform: scale(1.05);
+}
+
+.dish--tall {
+  margin-top: 80px; /* 真ん中だけ下げて、リズムをつける */
+}
+
+.dish__img--1 { background: linear-gradient(160deg, #f6e7c8, #e7c48a); }
+.dish__img--2 { background: linear-gradient(160deg, #cfe3f7, #6aa7d6); }
+.dish__img--3 { background: linear-gradient(160deg, #5a3a2c, #c97a45); }
+
+.dish figcaption {
+  margin-top: 16px;
+  font-family: var(--font-head);
+  font-size: 16px;
+}
+
+.dish figcaption span {
+  display: block;
+  font-family: var(--font-en);
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+}
+
+.dish:nth-child(2) { transition-delay: 0.15s; }
+.dish:nth-child(3) { transition-delay: 0.3s; }
+
+/* =========================================================
+   7. 季節のたのしみ
+   ========================================================= */
+.season-tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px;
+  margin: 16px 0 40px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+
+.season-tabs button,
+.season-switch button {
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  font-family: var(--font-head);
+  transition: background 0.4s, color 0.4s;
+}
+
+.season-tabs button {
+  width: 64px;
+  height: 44px;
+  font-size: 16px;
+}
+
+.season-tabs button[aria-selected="true"],
+.season-switch button[aria-checked="true"] {
+  background: var(--accent);
+  color: #fff;
+}
+
+.season-card {
+  padding: 48px;
+  border-radius: 24px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  transition: background 1.2s;
+}
+
+.season-card__en {
+  font-family: var(--font-en);
+  letter-spacing: 0.25em;
+  color: var(--accent);
+}
+
+.season-card__title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 28px;
+  margin: 4px 0 12px;
+}
+
+.season-card__list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.season-card__list li {
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--bg);
+  font-size: 14px;
+  transition: background 1.2s;
+}
+
+.season-card__list b {
+  display: block;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* 中身が切り替わったとき、ふわっと */
+.season-card.is-changing > * {
+  animation: card-in 0.8s var(--ease);
+}
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* =========================================================
+   8. 道のり（地図）
+   ========================================================= */
+.access__body {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 56px;
+  align-items: center;
+  margin-top: 40px;
+}
+
+.map {
+  width: 100%;
+  height: auto;
+  border-radius: 24px;
+}
+
+.map__sea     { fill: color-mix(in srgb, var(--sea) 45%, var(--bg)); transition: fill 1.2s; }
+.map__land    { fill: color-mix(in srgb, var(--hill) 45%, var(--bg)); transition: fill 1.2s; }
+.map__road    { fill: none; stroke: var(--ink); stroke-width: 3; stroke-dasharray: 2 10; stroke-linecap: round; }
+.map__station { fill: var(--bg); stroke: var(--ink); stroke-width: 3; }
+.map__inn circle { fill: var(--accent); transition: fill 1.2s; }
+.map__inn text { fill: #fff; font-family: var(--font-head); font-size: 14px; }
+.map__label   { fill: var(--ink); font-family: var(--font-head); font-size: 15px; }
+.map__label--sea { fill: #fff; font-size: 18px; letter-spacing: 0.3em; }
+.map__label--small { font-size: 12px; fill: var(--sub); }
+
+/* 道が、描かれるようにのびる（.is-show のとき） */
+.map .map__road {
+  stroke-dashoffset: 400;
+  transition: stroke-dashoffset 2.4s var(--ease) 0.4s;
+}
+
+.map.is-show .map__road {
+  stroke-dashoffset: 0;
+}
+
+.access__info div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.access__info dt {
+  color: var(--sub);
+}
+
+/* =========================================================
+   9. ご予約
+   ========================================================= */
+.reserve {
+  padding: 160px var(--side);
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 120%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 60%);
+  transition: background 1.2s;
+}
+
+.reserve__title {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: clamp(28px, 4.4vw, 56px);
+  line-height: 1.5;
+  margin: 12px 0 48px;
+}
+
+.reserve__form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 16px;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 28px;
+  border-radius: 24px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  text-align: left;
+  transition: background 1.2s;
+}
+
+.reserve__form label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--sub);
+}
+
+.reserve__form input,
+.reserve__form select {
+  min-width: 160px;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  font-size: 16px;
+  color: var(--ink);
+}
+
+.reserve__note {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--sub);
+}
+
+/* =========================================================
+   フッター・季節スイッチ・お知らせ
+   ========================================================= */
+.footer {
+  padding: 64px var(--side) 120px;
+  text-align: center;
+  color: var(--sub);
+  font-size: 12px;
+}
+
+.footer__logo {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: 0.4em;
+  margin-right: -0.4em;
+  color: var(--ink);
+}
+
+.footer__en {
+  font-family: var(--font-en);
+  letter-spacing: 0.2em;
+  margin-bottom: 24px;
+}
+
+/* 左下の季節スイッチ */
+.season-switch {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 120;
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  transition: background 1.2s;
+}
+
+.season-switch button {
+  width: 44px;
+  height: 44px;
+  font-size: 15px;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 88px;
+  translate: -50% 20px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s, translate 0.4s;
+  z-index: 300;
+}
+
+.toast.is-show {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+/* =========================================================
+   スマホ（768px以下）
+   ========================================================= */
+@media (max-width: 768px) {
+  .header__logo span,
+  .header__reserve {
+    display: none;
+  }
+
+  .section {
+    padding: 96px 20px;
+  }
+
+  .hero__text {
+    bottom: 112px; /* 季節スイッチのすぐ上 */
+    right: 20px;
+  }
+
+  /* 文字が読みやすいように、下側の影を濃く */
+  .hero::after {
+    background: linear-gradient(180deg, transparent 45%, rgba(20, 30, 50, 0.6));
+  }
+
+  .hero__scroll {
+    display: none;
+  }
+
+  /* スマホは横幅がせまく、景色の真ん中しか映らないので、宿と太陽を中央へ寄せる */
+  .inn   { transform: translateX(-390px); }
+  .ruins { transform: translateX(-330px); }
+  .sun   { transform: translate(-330px, var(--sun-y)); }
+
+  .prologue {
+    padding: 120px 20px;
+  }
+
+  .prologue__text {
+    max-height: 26em;
+    letter-spacing: 0.2em;
+  }
+
+  .pinned__card {
+    padding: 24px;
+  }
+
+  .pinned__panel:nth-child(even) {
+    margin-left: 0;
+  }
+
+  .shelf {
+    width: 22%;
+  }
+
+  /* お部屋：スマホでは写真を、いつも表示 */
+  .room {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 28px 0;
+  }
+
+  .room__thumb {
+    position: static;
+    width: 100%;
+    opacity: 1;
+    translate: none;
+    rotate: none;
+    margin-bottom: 8px;
+    box-shadow: none;
+  }
+
+  .room__num {
+    font-size: 14px;
+  }
+
+  .dining__grid,
+  .access__body,
+  .season-card__list {
+    grid-template-columns: 1fr;
+  }
+
+  .dish--tall {
+    margin-top: 0;
+  }
+
+  .season-card {
+    padding: 28px 22px;
+  }
+
+  .access__info div {
+    grid-template-columns: 96px 1fr;
+  }
+
+  .reserve {
+    padding: 120px 20px;
+  }
+
+  .reserve__form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .reserve__form input,
+  .reserve__form select {
+    width: 100%;
+  }
+
+  .season-switch {
+    left: 50%;
+    translate: -50% 0;
+  }
+
+  .season-switch button {
+    width: 48px;
+  }
+}
+
+/* 動きを減らす設定の人向け */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .reveal,
+  .hero__title .char {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  .particles {
+    display: none;
+  }
+}
