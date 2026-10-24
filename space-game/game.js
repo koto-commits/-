@@ -31,9 +31,13 @@ const H = 640;
 // 宇宙船がキー操作で動く速さ（1秒あたりのピクセル）
 const SHIP_SPEED = 320;
 
-// 宇宙船が上に行ける限界（画面の上から何ピクセルまで）
+// 宇宙船が動ける範囲（上の限界と下の限界）
 // 上まで行けると隕石が出た瞬間にぶつかってしまうので、下半分くらいにしている
 const MOVE_TOP = 290;
+const MOVE_BOTTOM = H - 40;
+
+// 高さボーナス：いちばん上にいるときの得点倍率（いちばん下は ×1）
+const HEIGHT_BONUS_MAX = 2;
 
 // スマホでは指で船が隠れないように、指より少し上に船を表示する
 const TOUCH_OFFSET_Y = 70;
@@ -41,16 +45,34 @@ const TOUCH_OFFSET_Y = 70;
 // ニアミス判定の距離（この距離より近くをよけたらボーナス）
 const NEAR_MISS_DISTANCE = 16;
 
-// タイムアタックの制限時間（秒）
-const TIME_LIMIT = 60;
+// 流れ星（コメット）1個の点数
+const COMET_POINTS = 100;
+
+// 異変が続く時間（秒）
+const EFFECT_SECONDS = 5;
 
 // モードごとの設定
-//   speedUp  … 1秒ごとに速さの倍率がどれだけ上がるか
-//   maxSpeed … 速さの倍率の上限
-//   busyFrom … 何秒後から裏拍にも隕石が出はじめるか
+//   limit     … 制限時間（秒）。0 なら時間制限なし
+//   anomalies … ？ボックス（異変）が出るか
+//   speedUp   … 1秒ごとに速さの倍率がどれだけ上がるか
+//   maxSpeed  … 速さの倍率の上限
+//   busyFrom  … 何秒後から裏拍にも隕石が出はじめるか
+//   firstComet … 最初の流れ星が出るまでの秒数
 const MODES = {
-  time:    { name: 'タイムアタック', speedUp: 0.03, maxSpeed: 2.8, busyFrom: 8 },
-  endless: { name: 'エンドレス',     speedUp: 0.02, maxSpeed: 2.6, busyFrom: 15 },
+  time30:  { name: 'タイムアタック 30秒（異変なし）', limit: 30, anomalies: false, speedUp: 0.05, maxSpeed: 2.6, busyFrom: 0,  firstComet: 8 },
+  time30x: { name: 'タイムアタック 30秒（異変あり）', limit: 30, anomalies: true,  speedUp: 0.05, maxSpeed: 2.6, busyFrom: 0,  firstComet: 8 },
+  endless: { name: 'エンドレス',                      limit: 0,  anomalies: true,  speedUp: 0.02, maxSpeed: 2.6, busyFrom: 10, firstComet: 15 },
+};
+
+// ？ボックスで起きる異変の一覧
+//   good: true … いい異変 / false … 悪い異変
+const EFFECTS = {
+  reverse:   { name: '操作が左右反対！',   good: false },
+  blackhole: { name: 'ブラックホール！',   good: false },
+  nebula:    { name: '星雲で前が見えない！', good: false },
+  shield:    { name: 'シールド！',         good: true },
+  magnet:    { name: '星を吸い寄せる！',   good: true },
+  slow:      { name: '隕石がスローに！',   good: true },
 };
 
 
@@ -92,7 +114,7 @@ resize();
 
 
 // -----------------------------------------------------
-// 4. ブラウザに保存する値（自分のベスト3・BGMのON/OFF・なまえ）
+// 4. ブラウザに保存する値（自分のベスト3・BGMのON/OFF・なまえ など）
 //    保存できない環境でも止まらないように try/catch で囲む
 // -----------------------------------------------------
 function loadValue(key, defaultValue) {
@@ -269,23 +291,36 @@ function checkRhythm() {
   onTick(t.tick);
 }
 
-// 8分音符ごとの処理（ここで隕石や星を出す）
+// 8分音符ごとの処理（ここで隕石・星・流れ星・？ボックスを出す）
 function onTick(tick) {
   const isBeat = tick % 2 === 0;           // 表拍（1, 2, 3, 4拍目）か
   const beatInBar = Math.floor(tick / 2) % BEATS_PER_BAR; // 小節の中で何拍目か（0から）
 
-  if (isBeat) beatPulse = 1;               // 拍に合わせて画面を光らせる
+  if (isBeat) beatPulse = 1;               // 拍に合わせて船や星を光らせる
 
   if (state !== 'playing') return;
+  const m = MODES[mode];
 
   if (isBeat) {
-    // 表拍：だいたい毎回隕石を出す
-    if (Math.random() < 0.8) spawnMeteor();
+    // 表拍：ほぼ毎回隕石を出す
+    if (Math.random() < 0.9) spawnMeteor();
     // 2拍目と4拍目：ときどき星を出す
     if (beatInBar % 2 === 1 && Math.random() < 0.35) spawnStar();
-  } else {
-    // 裏拍：時間がたつほど隕石が出やすくなる（モードごとに決めた秒数から少しずつ）
-    const chance = Math.min(0.5, (elapsed - MODES[mode].busyFrom) / 60);
+
+    // 小節の頭：時間が来ていたら流れ星の予告を出す（1拍後に飛んでくる）
+    if (beatInBar === 0 && elapsed >= nextCometAt) {
+      warnComet();
+      nextCometAt = elapsed + 15 + Math.random() * 5;  // 次は15〜20秒後
+    }
+
+    // 3拍目：時間が来ていたら？ボックスを出す（異変ありのモードだけ）
+    if (m.anomalies && beatInBar === 2 && elapsed >= nextBoxAt) {
+      spawnBox();
+      nextBoxAt = elapsed + 9 + Math.random() * 5;     // 次は9〜14秒後
+    }
+  } else if (elapsed >= m.busyFrom) {
+    // 裏拍：決めた秒数をすぎたら、時間がたつほど隕石が出やすくなる
+    const chance = Math.min(0.55, 0.1 + (elapsed - m.busyFrom) / 50);
     if (Math.random() < chance) spawnMeteor();
   }
 }
@@ -296,13 +331,17 @@ function onTick(tick) {
 // -----------------------------------------------------
 // 'title'（モード選択） / 'playing'（プレイ中） / 'dying'（終わりの演出中） / 'over'（結果画面）
 let state = 'title';
-let mode = 'time';       // 'time'（タイムアタック） / 'endless'（エンドレス）
+let mode = 'time30';     // MODES のどれか
 let endReason = 'hit';   // 'hit'（隕石に当たった） / 'time'（時間切れ）
+let anomalyOn = loadValue('starDodger.anomaly', true); // タイムアタックで異変ありにするか
 
 const ship = { x: W / 2, y: H - 90, r: 12 };
 
 let meteors = [];    // 隕石
 let stars = [];      // 取ると点が入る星
+let comets = [];     // 流れ星（高得点）
+let warnings = [];   // 流れ星の予告「！」
+let boxes = [];      // ？ボックス
 let particles = [];  // 爆発やキラキラの粒
 let popups = [];     // 「NICE!」などの文字
 
@@ -313,10 +352,28 @@ let timeLeft = 0;    // タイムアタックの残り時間（秒）
 let speedMul = 1;    // 落ちてくる速さの倍率（時間とともに上がる）
 let dyingTimer = 0;
 let beatPulse = 0;   // 拍で光らせる強さ（1→0に減っていく）
+let nextCometAt = 0; // 次の流れ星を出す時刻（プレイ時間の秒）
+let nextBoxAt = 0;   // 次の？ボックスを出す時刻
+
+// 今起きている異変（なければ null）
+//   { type: 'reverse' など, timeLeft: 残り秒数 }
+let effect = null;
+let blackHole = null; // ブラックホールの場所 { x, y }
 
 // コンボ数からスコア倍率を計算（3個ごとに ×1 アップ、最大 ×5）
 function multiplier() {
   return Math.min(5, 1 + Math.floor(combo / 3));
+}
+
+// 高さボーナス：いちばん下で ×1、いちばん上で ×2（小数第1位まで）
+function heightBonus() {
+  const t = (MOVE_BOTTOM - ship.y) / (MOVE_BOTTOM - MOVE_TOP); // 0（下）〜1（上）
+  return Math.round((1 + t * (HEIGHT_BONUS_MAX - 1)) * 10) / 10;
+}
+
+// 点数を計算する：もとの点 × コンボ倍率 × 高さボーナス
+function points(base) {
+  return Math.round(base * multiplier() * heightBonus());
 }
 
 // 画面（オーバーレイ）を切りかえる。name に渡したものだけ表示する
@@ -329,15 +386,23 @@ function showScreen(name) {
 // ゲーム開始・リトライ
 function startGame(newMode) {
   mode = newMode;
+  const m = MODES[mode];
   meteors = [];
   stars = [];
+  comets = [];
+  warnings = [];
+  boxes = [];
   particles = [];
   popups = [];
   score = 0;
   combo = 0;
   elapsed = 0;
-  timeLeft = TIME_LIMIT;
+  timeLeft = m.limit;
   speedMul = 1;
+  nextCometAt = m.firstComet;
+  nextBoxAt = 4;
+  effect = null;
+  blackHole = null;
   ship.x = W / 2;
   ship.y = H - 90;
   pointerActive = false;
@@ -382,10 +447,25 @@ function showGameOver() {
 }
 
 // モードのボタン。音はボタンを押したときに準備する
-$('timeBtn').addEventListener('click', () => { initAudio(); startGame('time'); });
+$('timeBtn').addEventListener('click', () => { initAudio(); startGame(anomalyOn ? 'time30x' : 'time30'); });
 $('endlessBtn').addEventListener('click', () => { initAudio(); startGame('endless'); });
 $('retryBtn').addEventListener('click', () => startGame(mode));
 $('menuBtn').addEventListener('click', () => { state = 'title'; showScreen('start'); });
+
+// タイムアタックの「異変あり／なし」切りかえ
+function renderAnomalyToggle() {
+  document.querySelectorAll('#anomalyToggle .tab').forEach(tab => {
+    tab.classList.toggle('active', (tab.dataset.anomaly === 'on') === anomalyOn);
+  });
+}
+document.querySelectorAll('#anomalyToggle .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    anomalyOn = tab.dataset.anomaly === 'on';
+    saveValue('starDodger.anomaly', anomalyOn);
+    renderAnomalyToggle();
+  });
+});
+renderAnomalyToggle();
 
 
 // -----------------------------------------------------
@@ -433,7 +513,7 @@ canvas.addEventListener('pointercancel', () => { pointerActive = false; });
 
 
 // -----------------------------------------------------
-// 9. 隕石・星・粒をつくる
+// 9. 隕石・星・流れ星・？ボックス・粒をつくる
 // -----------------------------------------------------
 function spawnMeteor() {
   const r = 13 + Math.random() * 14 + Math.min(6, elapsed / 15); // だんだん大きいのも出る
@@ -447,7 +527,7 @@ function spawnMeteor() {
     x: r + Math.random() * (W - r * 2),
     y: -r,
     r: r,
-    vy: (150 + Math.random() * 80) * speedMul,
+    vy: (170 + Math.random() * 80) * speedMul,
     vx: (Math.random() - 0.5) * 30,
     angle: Math.random() * Math.PI * 2,
     spin: (Math.random() - 0.5) * 2,
@@ -465,6 +545,52 @@ function spawnStar() {
     angle: 0,
     phase: Math.random() * Math.PI * 2, // ゆらゆら揺れるタイミング
   });
+}
+
+// 流れ星の予告：画面のはしに「！」を出して、1拍後に飛ばす
+function warnComet() {
+  const fromLeft = Math.random() < 0.5;
+  const y = 220 + Math.random() * 220;   // 船が動ける高さを横切るように
+  warnings.push({ fromLeft: fromLeft, y: y, timer: 60 / BPM });
+}
+
+// 流れ星：画面をななめにすごい速さで横切る
+function spawnComet(fromLeft, y) {
+  comets.push({
+    x: fromLeft ? -30 : W + 30,
+    y: y,
+    vx: fromLeft ? 460 : -460,
+    vy: 120,
+    r: 14,
+  });
+}
+
+// ？ボックス：ゆっくり揺れながら落ちてくる
+function spawnBox() {
+  boxes.push({
+    x: 30 + Math.random() * (W - 60),
+    y: -20,
+    vy: 110 * speedMul,
+    r: 14,
+    phase: Math.random() * Math.PI * 2,
+  });
+}
+
+// ？ボックスを取ったとき：いい異変か悪い異変か、ランダムで起きる
+function startEffect() {
+  const types = Object.keys(EFFECTS);
+  const type = types[Math.floor(Math.random() * types.length)];
+  effect = { type: type, timeLeft: type === 'shield' ? 8 : EFFECT_SECONDS };
+  blackHole = null;
+  if (type === 'blackhole') {
+    // ブラックホールは船から少しはなれた場所に出す
+    blackHole = {
+      x: ship.x < W / 2 ? W * 0.75 : W * 0.25,
+      y: 260 + Math.random() * 160,
+    };
+  }
+  const info = EFFECTS[type];
+  addPopup(W / 2, H / 2 - 40, info.name, info.good ? '#7dffa0' : '#ff7aa8', 24);
 }
 
 // 粒をばらまく（爆発・星を取ったとき）
@@ -489,7 +615,7 @@ function addPopup(x, y, text, color, size) {
 
 
 // -----------------------------------------------------
-// 10. 背景の星（流れていく演出）
+// 10. 背景の星（流れていく演出。プレイ中はじゃまなので表示しない）
 // -----------------------------------------------------
 const bgStars = [];
 for (let i = 0; i < 90; i++) {
@@ -501,10 +627,8 @@ for (let i = 0; i < 90; i++) {
 }
 
 function updateBackground(dt) {
-  // プレイ中は速く流れて「進んでいる」感じを出す
-  const base = state === 'playing' ? 60 * speedMul : 25;
   for (const s of bgStars) {
-    s.y += (base + s.z * base * 3) * dt;
+    s.y += (25 + s.z * 75) * dt;
     if (s.y > H) {
       s.y -= H;
       s.x = Math.random() * W;
@@ -528,7 +652,7 @@ function update(dt) {
     speedMul = Math.min(m.maxSpeed, 1 + elapsed * m.speedUp);
 
     // タイムアタックの残り時間
-    if (mode === 'time') {
+    if (m.limit > 0) {
       timeLeft -= dt;
       if (timeLeft <= 0) {
         timeLeft = 0;
@@ -536,83 +660,72 @@ function update(dt) {
       }
     }
 
-    // --- 宇宙船の移動 ---
-    if (pointerActive) {
-      // 指（マウス）の位置へなめらかに近づく
-      const k = Math.min(1, dt * 18);
-      ship.x += (pointerX - ship.x) * k;
-      ship.y += (pointerY - ship.y) * k;
-    } else {
-      if (keys.left) ship.x -= SHIP_SPEED * dt;
-      if (keys.right) ship.x += SHIP_SPEED * dt;
-      if (keys.up) ship.y -= SHIP_SPEED * dt;
-      if (keys.down) ship.y += SHIP_SPEED * dt;
+    // 異変の残り時間
+    if (effect) {
+      effect.timeLeft -= dt;
+      if (effect.timeLeft <= 0) {
+        effect = null;
+        blackHole = null;
+      }
     }
-    // 画面の外や、上に行きすぎないようにする
-    ship.x = Math.max(ship.r + 4, Math.min(W - ship.r - 4, ship.x));
-    ship.y = Math.max(MOVE_TOP, Math.min(H - 40, ship.y));
+
+    moveShip(dt);
   }
 
-  // --- 隕石と星を動かす（結果画面の後ろでも動き続ける） ---
+  // --- 隕石・星などを動かす（結果画面の後ろでも動き続ける） ---
+  // 「スロー」の異変中は隕石が半分の速さになる
+  const meteorDt = effect && effect.type === 'slow' ? dt * 0.5 : dt;
   for (const m of meteors) {
-    m.y += m.vy * dt;
-    m.x += m.vx * dt;
-    m.angle += m.spin * dt;
+    m.y += m.vy * meteorDt;
+    m.x += m.vx * meteorDt;
+    m.angle += m.spin * meteorDt;
+    // ブラックホールに少し引き寄せられる
+    if (blackHole) m.x += Math.sign(blackHole.x - m.x) * 40 * dt;
   }
   for (const s of stars) {
     s.y += s.vy * dt;
     s.angle += dt * 2;
     s.phase += dt * 3;
     s.x += Math.sin(s.phase) * 20 * dt;
+    // 「磁石」の異変中は、近くの星が船に吸い寄せられる
+    if (effect && effect.type === 'magnet') {
+      const dx = ship.x - s.x;
+      const dy = ship.y - s.y;
+      const d = Math.hypot(dx, dy);
+      if (d < 200) {
+        s.x += dx / d * 260 * dt;
+        s.y += dy / d * 260 * dt;
+      }
+    }
   }
+  for (const c of comets) {
+    c.x += c.vx * dt;
+    c.y += c.vy * dt;
+    // しっぽのキラキラ
+    if (Math.random() < 0.6) {
+      particles.push({ x: c.x, y: c.y, vx: -c.vx * 0.1, vy: -c.vy * 0.1, life: 0.4, color: '#bff4ff' });
+    }
+  }
+  for (const b of boxes) {
+    b.y += b.vy * dt;
+    b.phase += dt * 3;
+    b.x += Math.sin(b.phase) * 30 * dt;
+  }
+  // 流れ星の予告：時間が来たら本物を飛ばす
+  for (const w of warnings) {
+    w.timer -= dt;
+    if (w.timer <= 0 && state === 'playing') spawnComet(w.fromLeft, w.y);
+  }
+  warnings = warnings.filter(w => w.timer > 0);
 
   // --- 当たり判定（プレイ中だけ） ---
-  if (state === 'playing') {
-    for (const m of meteors) {
-      const dx = m.x - ship.x;
-      const dy = m.y - ship.y;
-      const hitDist = ship.r + m.r * 0.8; // 見た目より少し小さめに判定（やさしめ）
+  if (state === 'playing') checkHits();
 
-      // 当たった！
-      if (Math.hypot(dx, dy) < hitDist) {
-        hitMeteor();
-        break;
-      }
-
-      // ニアミス判定：宇宙船の高さを通りすぎた瞬間に、横の距離を調べる
-      if (!m.passed && m.y > ship.y) {
-        m.passed = true;
-        const gap = Math.abs(dx) - hitDist;
-        if (gap >= 0 && gap < NEAR_MISS_DISTANCE) {
-          const pts = 5 * multiplier();
-          score += pts;
-          addPopup(ship.x, ship.y - 30, 'NICE! +' + pts, '#7af5ff');
-          explode((m.x + ship.x) / 2, ship.y, ['#7af5ff', '#ffffff'], 8);
-        }
-      }
-    }
-
-    for (const s of stars) {
-      // 星を取った！
-      if (Math.hypot(s.x - ship.x, s.y - ship.y) < ship.r + s.r + 4) {
-        s.taken = true;
-        combo++;
-        const mul = multiplier();
-        const pts = 10 * mul;
-        score += pts;
-        addPopup(s.x, s.y - 20, '+' + pts + (mul > 1 ? '  ×' + mul : ''), '#ffe27a');
-        explode(s.x, s.y, ['#ffe27a', '#fff6c8'], 14);
-      } else if (s.y > H + 20) {
-        // 取り逃したらコンボがリセット
-        if (combo > 0) addPopup(W / 2, H - 20, 'COMBO LOST', '#ff8a8a');
-        combo = 0;
-      }
-    }
-  }
-
-  // 画面の外に出たものと、取った星を消す
-  meteors = meteors.filter(m => m.y < H + m.r * 2);
+  // 画面の外に出たもの・取ったものを消す
+  meteors = meteors.filter(m => !m.gone && m.y < H + m.r * 2);
   stars = stars.filter(s => !s.taken && s.y <= H + 20);
+  comets = comets.filter(c => !c.taken && c.x > -60 && c.x < W + 60);
+  boxes = boxes.filter(b => !b.taken && b.y < H + 30);
 
   // 終わりの演出中：少し待ってから結果画面を出す
   if (state === 'dying') {
@@ -637,6 +750,112 @@ function update(dt) {
   popups = popups.filter(p => p.life > 0);
 }
 
+// 宇宙船の移動
+function moveShip(dt) {
+  const reversed = effect && effect.type === 'reverse';
+
+  if (pointerActive) {
+    // 指（マウス）の位置へなめらかに近づく
+    // 「操作反転」中は、左右だけ鏡のように反対の位置へ向かう
+    let tx = reversed ? W - pointerX : pointerX;
+    let ty = pointerY;
+    // ブラックホール中は、向かう位置がブラックホールのほうへずれる
+    if (blackHole) {
+      tx += (blackHole.x - tx) * 0.35;
+      ty += (blackHole.y - ty) * 0.35;
+    }
+    const k = Math.min(1, dt * 18);
+    ship.x += (tx - ship.x) * k;
+    ship.y += (ty - ship.y) * k;
+  } else {
+    let dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+    if (reversed) dir = -dir;
+    ship.x += dir * SHIP_SPEED * dt;
+    if (keys.up) ship.y -= SHIP_SPEED * dt;
+    if (keys.down) ship.y += SHIP_SPEED * dt;
+    // ブラックホール中は、少しずつ引き寄せられる
+    if (blackHole) {
+      ship.x += Math.sign(blackHole.x - ship.x) * 110 * dt;
+      ship.y += Math.sign(blackHole.y - ship.y) * 110 * dt;
+    }
+  }
+  // 画面の外や、上に行きすぎないようにする
+  ship.x = Math.max(ship.r + 4, Math.min(W - ship.r - 4, ship.x));
+  ship.y = Math.max(MOVE_TOP, Math.min(MOVE_BOTTOM, ship.y));
+}
+
+// 当たり判定まとめ
+function checkHits() {
+  // --- 隕石 ---
+  for (const m of meteors) {
+    const dx = m.x - ship.x;
+    const dy = m.y - ship.y;
+    const hitDist = ship.r + m.r * 0.8; // 見た目より少し小さめに判定（やさしめ）
+
+    if (Math.hypot(dx, dy) < hitDist) {
+      if (effect && effect.type === 'shield') {
+        // シールドがあれば1回だけ平気（隕石がこわれる）
+        m.gone = true;
+        effect = null;
+        explode(m.x, m.y, ['#7af5ff', '#ffffff', '#a58b74'], 20);
+        addPopup(ship.x, ship.y - 40, 'SHIELD!', '#7dffa0', 22);
+        continue;
+      }
+      hitMeteor();
+      return;
+    }
+
+    // ニアミス判定：宇宙船の高さを通りすぎた瞬間に、横の距離を調べる
+    if (!m.passed && m.y > ship.y) {
+      m.passed = true;
+      const gap = Math.abs(dx) - hitDist;
+      if (gap >= 0 && gap < NEAR_MISS_DISTANCE) {
+        const pts = points(5);
+        score += pts;
+        addPopup(ship.x, ship.y - 30, 'NICE! +' + pts, '#7af5ff');
+        explode((m.x + ship.x) / 2, ship.y, ['#7af5ff', '#ffffff'], 8);
+      }
+    }
+  }
+
+  // --- 星 ---
+  for (const s of stars) {
+    if (Math.hypot(s.x - ship.x, s.y - ship.y) < ship.r + s.r + 4) {
+      s.taken = true;
+      combo++;
+      const pts = points(10);
+      score += pts;
+      const mul = multiplier();
+      addPopup(s.x, s.y - 20, '+' + pts + (mul > 1 ? '  ×' + mul : ''), '#ffe27a');
+      explode(s.x, s.y, ['#ffe27a', '#fff6c8'], 14);
+    } else if (s.y > H + 20) {
+      // 取り逃したらコンボがリセット
+      if (combo > 0) addPopup(W / 2, H - 20, 'COMBO LOST', '#ff8a8a');
+      combo = 0;
+    }
+  }
+
+  // --- 流れ星 ---
+  for (const c of comets) {
+    if (Math.hypot(c.x - ship.x, c.y - ship.y) < ship.r + c.r + 6) {
+      c.taken = true;
+      const pts = points(COMET_POINTS);
+      score += pts;
+      addPopup(c.x, c.y - 24, 'COMET! +' + pts, '#bff4ff', 24);
+      explode(c.x, c.y, ['#bff4ff', '#ffffff', '#ffe27a'], 30);
+    }
+  }
+
+  // --- ？ボックス ---
+  for (const b of boxes) {
+    if (Math.hypot(b.x - ship.x, b.y - ship.y) < ship.r + b.r + 4) {
+      b.taken = true;
+      explode(b.x, b.y, ['#c58bff', '#ffffff'], 16);
+      startEffect();
+    }
+  }
+}
+
 
 // -----------------------------------------------------
 // 12. 描画（毎フレーム画面を描きなおす）
@@ -649,10 +868,15 @@ function draw() {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 
-  drawBackgroundStars();
+  // 流れる背景の星は、モード選択画面と結果画面だけ
+  if (state === 'title' || state === 'over') drawBackgroundStars();
 
+  if (blackHole) drawBlackHole();
   for (const s of stars) drawStar(s);
+  for (const b of boxes) drawBox(b);
   for (const m of meteors) drawMeteor(m);
+  for (const c of comets) drawComet(c);
+  for (const w of warnings) drawWarning(w);
   // 船を描くのはプレイ中と、時間切れの演出中（当たったときは爆発しているので描かない）
   if (state === 'playing' || (state === 'dying' && endReason === 'time')) drawShip();
 
@@ -663,6 +887,9 @@ function draw() {
     ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
   }
   ctx.globalAlpha = 1;
+
+  // 「星雲」の異変中は、船のまわり以外を暗くする
+  if (effect && effect.type === 'nebula') drawNebula();
 
   // 文字
   ctx.textAlign = 'center';
@@ -679,9 +906,7 @@ function draw() {
 
 function drawBackgroundStars() {
   for (const s of bgStars) {
-    // 拍に合わせて少し明るくなる
-    const alpha = 0.25 + s.z * 0.6 + beatPulse * 0.25;
-    ctx.fillStyle = 'rgba(200, 215, 255, ' + Math.min(1, alpha) + ')';
+    ctx.fillStyle = 'rgba(200, 215, 255, ' + (0.25 + s.z * 0.6) + ')';
     const size = 0.8 + s.z * 1.8;
     // 近い星は少し縦長にして「流れている」感じを出す
     ctx.fillRect(s.x, s.y, size, size * (1 + s.z * 3));
@@ -692,6 +917,17 @@ function drawBackgroundStars() {
 function drawShip() {
   const x = ship.x;
   const y = ship.y;
+
+  // シールド中は青い泡で包む
+  if (effect && effect.type === 'shield') {
+    ctx.strokeStyle = 'rgba(122, 245, 255, 0.8)';
+    ctx.fillStyle = 'rgba(122, 245, 255, 0.12)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, 26 + beatPulse * 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
 
   // エンジンの炎（ちらちら揺れる）
   const flame = 14 + Math.random() * 8;
@@ -789,6 +1025,102 @@ function drawStar(s) {
   ctx.restore();
 }
 
+// 流れ星（明るい頭＋進む向きと反対に伸びるしっぽ）
+function drawComet(c) {
+  const len = 70;
+  const sp = Math.hypot(c.vx, c.vy);
+  const tx = c.x - c.vx / sp * len;  // しっぽの先
+  const ty = c.y - c.vy / sp * len;
+  const g = ctx.createLinearGradient(c.x, c.y, tx, ty);
+  g.addColorStop(0, 'rgba(191, 244, 255, 0.9)');
+  g.addColorStop(1, 'rgba(191, 244, 255, 0)');
+  ctx.strokeStyle = g;
+  ctx.lineWidth = 10;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(c.x, c.y);
+  ctx.lineTo(tx, ty);
+  ctx.stroke();
+
+  ctx.shadowColor = '#bff4ff';
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+// 流れ星の予告「！」（画面のはしで点滅）
+function drawWarning(w) {
+  if (Math.floor(w.timer * 10) % 2 === 0) return; // 点滅
+  const x = w.fromLeft ? 18 : W - 18;
+  ctx.fillStyle = '#bff4ff';
+  ctx.beginPath();
+  ctx.moveTo(x, w.y - 14);
+  ctx.lineTo(x + 13, w.y + 10);
+  ctx.lineTo(x - 13, w.y + 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#05060f';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('!', x, w.y + 7);
+}
+
+// ？ボックス（紫の四角に「？」）
+function drawBox(b) {
+  const s = b.r * 2;
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  ctx.rotate(Math.sin(b.phase) * 0.2);
+  ctx.shadowColor = '#c58bff';
+  ctx.shadowBlur = 12 + beatPulse * 10;
+  ctx.fillStyle = '#7b4dff';
+  ctx.strokeStyle = '#e2ccff';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(-s / 2, -s / 2, s, s, 6);
+  ctx.fill();
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('?', 0, 7);
+  ctx.restore();
+}
+
+// ブラックホール（黒い穴と、まわりで回る紫の輪）
+function drawBlackHole() {
+  const { x, y } = blackHole;
+  const t = performance.now() / 1000;
+  const g = ctx.createRadialGradient(x, y, 10, x, y, 60);
+  g.addColorStop(0, 'rgba(0, 0, 0, 1)');
+  g.addColorStop(0.5, 'rgba(90, 40, 160, 0.5)');
+  g.addColorStop(1, 'rgba(90, 40, 160, 0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(x, y, 60, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(197, 139, 255, 0.7)';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.ellipse(x, y, 34 + i * 8, 12 + i * 3, t * (1 + i * 0.5), 0, Math.PI * 1.4);
+    ctx.stroke();
+  }
+}
+
+// 星雲：船のまわりだけ見えるように、ほかを暗くする
+function drawNebula() {
+  const g = ctx.createRadialGradient(ship.x, ship.y, 60, ship.x, ship.y, 150);
+  g.addColorStop(0, 'rgba(20, 5, 30, 0)');
+  g.addColorStop(1, 'rgba(20, 5, 30, 0.96)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
 // 画面上のスコア表示
 function drawHud() {
   ctx.textAlign = 'left';
@@ -801,13 +1133,31 @@ function drawHud() {
   ctx.fillStyle = mul > 1 ? '#ffe27a' : '#9aa6d8';
   ctx.fillText('COMBO ' + combo + '   ×' + mul, 14, 54);
 
+  // 高さボーナス（上にいるほど明るい色）
+  const hb = heightBonus();
+  ctx.fillStyle = hb >= 1.5 ? '#7af5ff' : '#9aa6d8';
+  ctx.fillText('HEIGHT ×' + hb.toFixed(1), 14, 74);
+
   // タイムアタックの残り時間（数字と、画面のいちばん上のバー。残り10秒で赤くなる）
-  if (mode === 'time') {
+  const m = MODES[mode];
+  if (m.limit > 0) {
     const color = timeLeft <= 10 ? '#ff6b6b' : '#7af5ff';
     ctx.font = 'bold 18px sans-serif';
     ctx.fillStyle = color;
-    ctx.fillText('TIME ' + Math.ceil(timeLeft), 14, 80);
-    ctx.fillRect(0, 0, W * (timeLeft / TIME_LIMIT), 4);
+    ctx.fillText('TIME ' + Math.ceil(timeLeft), 14, 98);
+    ctx.fillRect(0, 0, W * (timeLeft / m.limit), 4);
+  }
+
+  // 今起きている異変（画面の下に名前と残り時間のバー）
+  if (effect) {
+    const info = EFFECTS[effect.type];
+    const color = info.good ? '#7dffa0' : '#ff7aa8';
+    const total = effect.type === 'shield' ? 8 : EFFECT_SECONDS;
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillStyle = color;
+    ctx.fillText(info.name, W / 2, H - 16);
+    ctx.fillRect(W / 2 - 60, H - 10, 120 * (effect.timeLeft / total), 4);
   }
 }
 
@@ -875,7 +1225,7 @@ function renderMyList(ol, m, newEntry) {
 // 14. 世界のみんなのスコア（公開ページの共有データベースを使う）
 //     自分のPCで動かしたときは使えないので、そのときは案内だけ出す
 // -----------------------------------------------------
-// データの形：scores/<プレイヤーID> = { name, time, timeDate, endless, endlessDate }
+// データの形：scores/<プレイヤーID> = { name, time30, time30Date, time30x, ..., endless, ... }
 //   1人1つのデータに、モードごとの自己ベストを入れる（だからTOP10は「上位10人」になる）
 const world = {
   status: 'loading',   // 'loading' / 'ready'（使える） / 'local'（自分のPCで動かしている） / 'off'（使えない）
@@ -883,8 +1233,9 @@ const world = {
   uid: null,           // 自分のプレイヤーID
   canWrite: null,      // 登録できるか（null は「わからない」→ 試してみて決める）
   mine: {},            // 自分の登録データ
-  top: { time: [], endless: [] },
+  top: {},             // モードごとの上位10人
 };
+for (const m of Object.keys(MODES)) world.top[m] = [];
 let submitted = false;     // 今回のスコアを登録したか
 let submitMessage = '';    // 登録したときのメッセージ
 
@@ -1030,12 +1381,12 @@ nameInput.addEventListener('keydown', e => {
 // -----------------------------------------------------
 // 15. ランキング画面（モード選択から開く）
 // -----------------------------------------------------
-let rankMode = 'time';
+let rankMode = 'time30';
 
 function renderRankScreen() {
   renderMyList($('rankMyList'), rankMode, null);
   renderWorldList($('rankWorldList'), $('rankWorldStatus'), rankMode);
-  document.querySelectorAll('.tab').forEach(tab => {
+  document.querySelectorAll('#rankScreen .tab').forEach(tab => {
     tab.classList.toggle('active', tab.dataset.mode === rankMode);
   });
 }
@@ -1045,7 +1396,7 @@ $('rankBtn').addEventListener('click', () => {
   showScreen('rank');
 });
 $('backBtn').addEventListener('click', () => showScreen('start'));
-document.querySelectorAll('.tab').forEach(tab => {
+document.querySelectorAll('#rankScreen .tab').forEach(tab => {
   tab.addEventListener('click', () => {
     rankMode = tab.dataset.mode;
     renderRankScreen();

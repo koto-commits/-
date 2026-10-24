@@ -164,6 +164,7 @@
 
     /* ランキング画面のモード切りかえタブ */
     .tabs { display: flex; gap: 6px; width: 100%; }
+    #anomalyToggle { margin-top: -4px; }
     .tab {
       flex: 1;
       padding: 8px;
@@ -207,8 +208,16 @@
           隕石の<b>すれすれ</b>をよけるとボーナス<br>
           星を続けて取るとスコア倍率アップ</p>
         <p class="small">操作：画面を押したまま（指・マウス）動かす<br>PCは矢印キーでも動かせます</p>
-        <button id="timeBtn" class="btn">タイムアタック<span class="sub">60秒でどこまで稼げるか</span></button>
-        <button id="endlessBtn" class="btn">エンドレス<span class="sub">当たるまで続く</span></button>
+        <button id="timeBtn" class="btn">タイムアタック<span class="sub">30秒でどこまで稼げるか</span></button>
+        <!-- タイムアタックの「異変」あり／なしの切りかえ -->
+        <div class="tabs" id="anomalyToggle">
+          <button class="tab" data-anomaly="off">異変なし</button>
+          <button class="tab" data-anomaly="on">異変あり</button>
+        </div>
+        <button id="endlessBtn" class="btn">エンドレス<span class="sub">当たるまで続く（異変あり）</span></button>
+        <p class="small">上のほうを飛ぶほど得点アップ（最大×2）<br>
+          ななめに飛ぶ<b>流れ星</b>は1個で100点！<br>
+          <b>？ボックス</b>は取ると何かが起きる…</p>
         <button id="rankBtn" class="btn secondary">ランキングを見る</button>
       </div>
     </div>
@@ -245,7 +254,8 @@
       <div class="panel">
         <h1>RANKING</h1>
         <div class="tabs">
-          <button class="tab active" data-mode="time">タイムアタック</button>
+          <button class="tab" data-mode="time30">30秒</button>
+          <button class="tab" data-mode="time30x">30秒＋異変</button>
           <button class="tab" data-mode="endless">エンドレス</button>
         </div>
         <div class="board">
