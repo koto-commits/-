@@ -47,6 +47,7 @@
       gap: 12px;
       text-align: center;
       padding: 16px;
+      background: rgba(5, 6, 15, 0.55); /* 後ろの隕石で文字が読みにくくならないように暗くする */
     }
     .hidden { display: none; }
 
@@ -100,7 +101,8 @@
     <div id="startScreen" class="overlay">
       <h1>STAR DODGER</h1>
       <p>隕石をよけて、星を集めよう！</p>
-      <p>PC：← → キー ／ スマホ：画面の左右をタップ</p>
+      <p>隕石の<b>すれすれ</b>をよけるとボーナス！<br>星を続けて取るとスコア倍率アップ</p>
+      <p>PC：← → キー ／ スマホ：指で左右にドラッグ</p>
       <button id="startBtn" class="btn">スタート</button>
     </div>
 
