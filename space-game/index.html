@@ -34,37 +34,55 @@
       background: #05060f;
       border-radius: 8px;
       box-shadow: 0 0 40px rgba(80, 120, 255, 0.15);
+      cursor: grab;
     }
+    canvas:active { cursor: grabbing; }
 
-    /* スタート画面・ゲームオーバー画面（キャンバスの上に重ねる） */
+    /* スタート画面・ゲームオーバー画面など（キャンバスの上に重ねる） */
     .overlay {
       position: absolute;
       inset: 0;
       display: flex;
+      overflow-y: auto;          /* 画面が小さいときはスクロールできる */
+      padding: 16px;
+      box-sizing: border-box;
+      background: rgba(5, 6, 15, 0.6); /* 後ろの隕石で文字が読みにくくならないように暗くする */
+      touch-action: pan-y;
+    }
+    /* 中身を真ん中に置く（はみ出したときは上から見えるように margin:auto を使う） */
+    .panel {
+      margin: auto;
+      width: 100%;
+      max-width: 340px;
+      display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
       gap: 12px;
       text-align: center;
-      padding: 16px;
-      background: rgba(5, 6, 15, 0.55); /* 後ろの隕石で文字が読みにくくならないように暗くする */
     }
-    .hidden { display: none; }
+    .hidden { display: none !important; }
 
     h1 {
       margin: 0;
-      font-size: 40px;
+      font-size: 38px;
       letter-spacing: 2px;
       color: #ffe27a;
       text-shadow: 0 0 16px rgba(255, 226, 122, 0.6);
     }
-    .overlay p { margin: 0; color: #c8d0ff; line-height: 1.6; }
-    .big { font-size: 28px; color: #fff; }
+    h2 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 1px;
+      color: #9fb0ff;
+    }
+    .panel p { margin: 0; color: #c8d0ff; line-height: 1.6; }
+    .big { font-size: 30px; color: #fff !important; font-weight: bold; }
+    .small { font-size: 13px; color: #8f98c8 !important; }
 
     .btn {
-      margin-top: 8px;
-      padding: 14px 40px;
-      font-size: 20px;
+      width: 100%;
+      padding: 13px 20px;
+      font-size: 18px;
       font-weight: bold;
       color: #05060f;
       background: #ffe27a;
@@ -73,6 +91,90 @@
       cursor: pointer;
     }
     .btn:hover { background: #fff0b0; }
+    .btn .sub { display: block; font-size: 12px; font-weight: normal; }
+    .btn.secondary {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .btn.secondary:hover { background: rgba(255, 255, 255, 0.2); }
+    .btn:focus-visible, .tab:focus-visible, #bgmBtn:focus-visible { outline: 2px solid #7af5ff; outline-offset: 2px; }
+
+    /* スコア一覧 */
+    .board {
+      width: 100%;
+      padding: 12px 14px;
+      box-sizing: border-box;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .board ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .board li {
+      display: grid;
+      grid-template-columns: 2em 1fr auto;
+      gap: 8px;
+      align-items: baseline;
+      font-size: 15px;
+      text-align: left;
+      font-variant-numeric: tabular-nums;
+    }
+    .board li .rank { color: #8f98c8; }
+    .board li .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .board li .pts { font-weight: bold; }
+    .board li.me { color: #ffe27a; }
+    .board li.new { color: #7af5ff; }
+    .board .empty { color: #8f98c8; font-size: 13px; }
+
+    /* 名前を入れてランキングに登録 */
+    .entry { display: flex; gap: 6px; width: 100%; }
+    .entry input {
+      flex: 1;
+      min-width: 0;
+      padding: 8px 10px;
+      font-size: 16px;          /* 16px未満だとiPhoneで勝手にズームする */
+      color: #fff;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    .entry button {
+      padding: 8px 14px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #05060f;
+      background: #7af5ff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .entry button:disabled { opacity: 0.5; cursor: default; }
+
+    /* ランキング画面のモード切りかえタブ */
+    .tabs { display: flex; gap: 6px; width: 100%; }
+    .tab {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      color: #c8d0ff;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .tab.active { color: #05060f; background: #c8d0ff; font-weight: bold; }
 
     /* 右上のBGMボタン */
     #bgmBtn {
@@ -97,21 +199,66 @@
     <!-- BGMのON/OFFボタン -->
     <button id="bgmBtn">♪ BGM: ON</button>
 
-    <!-- スタート画面 -->
+    <!-- スタート画面（モード選択） -->
     <div id="startScreen" class="overlay">
-      <h1>STAR DODGER</h1>
-      <p>隕石をよけて、星を集めよう！</p>
-      <p>隕石の<b>すれすれ</b>をよけるとボーナス！<br>星を続けて取るとスコア倍率アップ</p>
-      <p>PC：← → キー ／ スマホ：指で左右にドラッグ</p>
-      <button id="startBtn" class="btn">スタート</button>
+      <div class="panel">
+        <h1>STAR DODGER</h1>
+        <p>隕石をよけて、星を集めよう！<br>
+          隕石の<b>すれすれ</b>をよけるとボーナス<br>
+          星を続けて取るとスコア倍率アップ</p>
+        <p class="small">操作：画面を押したまま（指・マウス）動かす<br>PCは矢印キーでも動かせます</p>
+        <button id="timeBtn" class="btn">タイムアタック<span class="sub">60秒でどこまで稼げるか</span></button>
+        <button id="endlessBtn" class="btn">エンドレス<span class="sub">当たるまで続く</span></button>
+        <button id="rankBtn" class="btn secondary">ランキングを見る</button>
+      </div>
     </div>
 
     <!-- ゲームオーバー画面 -->
     <div id="overScreen" class="overlay hidden">
-      <h1>GAME OVER</h1>
-      <p class="big">スコア：<span id="finalScore">0</span></p>
-      <p>ハイスコア：<span id="bestScore">0</span></p>
-      <button id="retryBtn" class="btn">リトライ</button>
+      <div class="panel">
+        <h1 id="overTitle">GAME OVER</h1>
+        <p id="overMode" class="small"></p>
+        <p class="big">スコア <span id="finalScore">0</span></p>
+
+        <div class="board">
+          <h2>あなたのベスト3</h2>
+          <ol id="overMyList"></ol>
+        </div>
+
+        <div class="board">
+          <h2>世界のみんなのスコア TOP10</h2>
+          <ol id="overWorldList"></ol>
+          <p id="worldStatus" class="small"></p>
+          <div id="entryForm" class="entry hidden">
+            <input id="nameInput" maxlength="12" placeholder="なまえ（12文字まで）" autocomplete="nickname">
+            <button id="submitBtn">登録</button>
+          </div>
+        </div>
+
+        <button id="retryBtn" class="btn">リトライ</button>
+        <button id="menuBtn" class="btn secondary">モード選択へ</button>
+      </div>
+    </div>
+
+    <!-- ランキング画面 -->
+    <div id="rankScreen" class="overlay hidden">
+      <div class="panel">
+        <h1>RANKING</h1>
+        <div class="tabs">
+          <button class="tab active" data-mode="time">タイムアタック</button>
+          <button class="tab" data-mode="endless">エンドレス</button>
+        </div>
+        <div class="board">
+          <h2>あなたのベスト3</h2>
+          <ol id="rankMyList"></ol>
+        </div>
+        <div class="board">
+          <h2>世界のみんなのスコア TOP10</h2>
+          <ol id="rankWorldList"></ol>
+          <p id="rankWorldStatus" class="small"></p>
+        </div>
+        <button id="backBtn" class="btn secondary">もどる</button>
+      </div>
     </div>
   </div>
 

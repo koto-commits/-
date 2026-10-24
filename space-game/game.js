@@ -31,22 +31,41 @@ const H = 640;
 // 宇宙船がキー操作で動く速さ（1秒あたりのピクセル）
 const SHIP_SPEED = 320;
 
+// 宇宙船が上に行ける限界（画面の上から何ピクセルまで）
+// 上まで行けると隕石が出た瞬間にぶつかってしまうので、下半分くらいにしている
+const MOVE_TOP = 290;
+
+// スマホでは指で船が隠れないように、指より少し上に船を表示する
+const TOUCH_OFFSET_Y = 70;
+
 // ニアミス判定の距離（この距離より近くをよけたらボーナス）
 const NEAR_MISS_DISTANCE = 16;
+
+// タイムアタックの制限時間（秒）
+const TIME_LIMIT = 60;
+
+// モードごとの設定
+//   speedUp  … 1秒ごとに速さの倍率がどれだけ上がるか
+//   maxSpeed … 速さの倍率の上限
+//   busyFrom … 何秒後から裏拍にも隕石が出はじめるか
+const MODES = {
+  time:    { name: 'タイムアタック', speedUp: 0.03, maxSpeed: 2.8, busyFrom: 8 },
+  endless: { name: 'エンドレス',     speedUp: 0.02, maxSpeed: 2.6, busyFrom: 15 },
+};
 
 
 // -----------------------------------------------------
 // 2. HTMLの部品を取ってくる
 // -----------------------------------------------------
-const canvas = document.getElementById('game');
+const $ = id => document.getElementById(id);
+const canvas = $('game');
 const ctx = canvas.getContext('2d');
-const startScreen = document.getElementById('startScreen');
-const overScreen = document.getElementById('overScreen');
-const startBtn = document.getElementById('startBtn');
-const retryBtn = document.getElementById('retryBtn');
-const bgmBtn = document.getElementById('bgmBtn');
-const finalScoreEl = document.getElementById('finalScore');
-const bestScoreEl = document.getElementById('bestScore');
+const startScreen = $('startScreen');
+const overScreen = $('overScreen');
+const rankScreen = $('rankScreen');
+const bgmBtn = $('bgmBtn');
+const nameInput = $('nameInput');
+const submitBtn = $('submitBtn');
 
 
 // -----------------------------------------------------
@@ -73,7 +92,7 @@ resize();
 
 
 // -----------------------------------------------------
-// 4. ブラウザに保存する値（ハイスコアとBGMのON/OFF）
+// 4. ブラウザに保存する値（自分のベスト3・BGMのON/OFF・なまえ）
 //    保存できない環境でも止まらないように try/catch で囲む
 // -----------------------------------------------------
 function loadValue(key, defaultValue) {
@@ -90,6 +109,12 @@ function saveValue(key, value) {
   } catch (e) {
     // 保存できなくてもゲームは続ける
   }
+}
+
+// 今日の日付を「2026/10/24」の形で返す
+function today() {
+  const d = new Date();
+  return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate();
 }
 
 
@@ -119,7 +144,7 @@ const bgmFileLoad = fetch(BGM_FILE)
   });
 
 // 音の準備。ブラウザのルールで「ボタンを押したとき」にしか音を出せないので、
-// スタートボタンを押したときに呼ぶ
+// モードのボタンを押したときに呼ぶ
 function initAudio() {
   if (audioCtx) {
     audioCtx.resume();
@@ -259,8 +284,8 @@ function onTick(tick) {
     // 2拍目と4拍目：ときどき星を出す
     if (beatInBar % 2 === 1 && Math.random() < 0.35) spawnStar();
   } else {
-    // 裏拍：時間がたつほど隕石が出やすくなる（15秒後から少しずつ）
-    const chance = Math.min(0.5, (elapsed - 15) / 60);
+    // 裏拍：時間がたつほど隕石が出やすくなる（モードごとに決めた秒数から少しずつ）
+    const chance = Math.min(0.5, (elapsed - MODES[mode].busyFrom) / 60);
     if (Math.random() < chance) spawnMeteor();
   }
 }
@@ -269,8 +294,10 @@ function onTick(tick) {
 // -----------------------------------------------------
 // 7. ゲームの状態
 // -----------------------------------------------------
-// 'title'（スタート画面） / 'playing'（プレイ中） / 'dying'（爆発中） / 'over'（ゲームオーバー）
+// 'title'（モード選択） / 'playing'（プレイ中） / 'dying'（終わりの演出中） / 'over'（結果画面）
 let state = 'title';
+let mode = 'time';       // 'time'（タイムアタック） / 'endless'（エンドレス）
+let endReason = 'hit';   // 'hit'（隕石に当たった） / 'time'（時間切れ）
 
 const ship = { x: W / 2, y: H - 90, r: 12 };
 
@@ -282,18 +309,26 @@ let popups = [];     // 「NICE!」などの文字
 let score = 0;
 let combo = 0;       // 星を続けて取った数
 let elapsed = 0;     // プレイ時間（秒）
+let timeLeft = 0;    // タイムアタックの残り時間（秒）
 let speedMul = 1;    // 落ちてくる速さの倍率（時間とともに上がる）
 let dyingTimer = 0;
 let beatPulse = 0;   // 拍で光らせる強さ（1→0に減っていく）
-let best = loadValue('starDodger.best', 0);
 
 // コンボ数からスコア倍率を計算（3個ごとに ×1 アップ、最大 ×5）
 function multiplier() {
   return Math.min(5, 1 + Math.floor(combo / 3));
 }
 
+// 画面（オーバーレイ）を切りかえる。name に渡したものだけ表示する
+function showScreen(name) {
+  startScreen.classList.toggle('hidden', name !== 'start');
+  overScreen.classList.toggle('hidden', name !== 'over');
+  rankScreen.classList.toggle('hidden', name !== 'rank');
+}
+
 // ゲーム開始・リトライ
-function startGame() {
+function startGame(newMode) {
+  mode = newMode;
   meteors = [];
   stars = [];
   particles = [];
@@ -301,72 +336,97 @@ function startGame() {
   score = 0;
   combo = 0;
   elapsed = 0;
+  timeLeft = TIME_LIMIT;
   speedMul = 1;
   ship.x = W / 2;
+  ship.y = H - 90;
+  pointerActive = false;
   // BGMがないときは、スタートした瞬間を拍の0番にする
   if (!clock.audio) clock = { audio: false, t0: performance.now() / 1000 };
   lastTickKey = null;
 
   state = 'playing';
-  startScreen.classList.add('hidden');
-  overScreen.classList.add('hidden');
+  showScreen('none');
 }
 
 // 隕石に当たったとき
-function gameOver() {
+function hitMeteor() {
   state = 'dying';
-  dyingTimer = 1.0;   // 1秒爆発を見せてからゲームオーバー画面へ
+  endReason = 'hit';
+  dyingTimer = 1.0;   // 1秒爆発を見せてから結果画面へ
   explode(ship.x, ship.y, ['#ffb347', '#ff6b4a', '#fff2a8'], 40);
 }
 
+// タイムアタックで時間切れになったとき
+function timeUp() {
+  state = 'dying';
+  endReason = 'time';
+  dyingTimer = 1.0;
+  addPopup(W / 2, H / 2, 'TIME UP!', '#ffe27a', 32);
+}
+
+// 結果画面を出す
 function showGameOver() {
   state = 'over';
-  if (score > best) {
-    best = score;
-    saveValue('starDodger.best', best);
-  }
-  finalScoreEl.textContent = score;
-  bestScoreEl.textContent = best;
-  overScreen.classList.remove('hidden');
+  const myNewEntry = addMyScore(mode, score);
+
+  $('overTitle').textContent = endReason === 'time' ? 'TIME UP!' : 'GAME OVER';
+  $('overMode').textContent = MODES[mode].name;
+  $('finalScore').textContent = score;
+  renderMyList($('overMyList'), mode, myNewEntry);
+
+  submitted = false;
+  submitMessage = '';
+  renderOverWorld();
+  showScreen('over');
 }
 
-startBtn.addEventListener('click', () => {
-  initAudio();   // 音はボタンを押したときに準備する
-  startGame();
-});
-retryBtn.addEventListener('click', startGame);
+// モードのボタン。音はボタンを押したときに準備する
+$('timeBtn').addEventListener('click', () => { initAudio(); startGame('time'); });
+$('endlessBtn').addEventListener('click', () => { initAudio(); startGame('endless'); });
+$('retryBtn').addEventListener('click', () => startGame(mode));
+$('menuBtn').addEventListener('click', () => { state = 'title'; showScreen('start'); });
 
 
 // -----------------------------------------------------
-// 8. 操作（キーボードとタッチ）
+// 8. 操作（指・マウス・キーボード）
 // -----------------------------------------------------
-const keys = { left: false, right: false };
-let pointerActive = false;  // 指（またはマウス）で操作中か
-let pointerX = W / 2;       // 指の位置（ゲーム画面の座標）
+const keys = { left: false, right: false, up: false, down: false };
+const KEY_NAMES = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
+let pointerActive = false;  // 指（またはマウスのボタン）で押している間 true
+let pointerX = W / 2;       // 船が向かう位置（ゲーム画面の座標）
+let pointerY = H - 90;
 
 window.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft') { keys.left = true; e.preventDefault(); }
-  if (e.key === 'ArrowRight') { keys.right = true; e.preventDefault(); }
+  const k = KEY_NAMES[e.key];
+  if (!k) return;
+  keys[k] = true;
+  // プレイ中だけ、矢印キーで画面がスクロールしないようにする
+  // （名前の入力中に矢印キーが使えなくならないように）
+  if (state === 'playing') e.preventDefault();
 });
 window.addEventListener('keyup', e => {
-  if (e.key === 'ArrowLeft') keys.left = false;
-  if (e.key === 'ArrowRight') keys.right = false;
+  const k = KEY_NAMES[e.key];
+  if (k) keys[k] = false;
 });
 
-// 画面上の位置を、ゲーム画面（W×H）の座標に直す
-function toGameX(clientX) {
+// 指やマウスの位置を、船が向かう位置（ゲーム画面の座標）に直す
+function setPointer(e) {
   const rect = canvas.getBoundingClientRect();
-  return (clientX - rect.left) / rect.width * W;
+  pointerX = (e.clientX - rect.left) / rect.width * W;
+  pointerY = (e.clientY - rect.top) / rect.height * H;
+  // 指のときだけ、船を指より上に出す（マウスはカーソルの位置そのまま）
+  if (e.pointerType === 'touch') pointerY -= TOUCH_OFFSET_Y;
 }
 
-// 指で触ったら、その左右位置に宇宙船がついてくる
+// 押している間だけ、船がその位置へついてくる（指でもマウスでも同じ操作）
 canvas.addEventListener('pointerdown', e => {
   pointerActive = true;
-  pointerX = toGameX(e.clientX);
-  canvas.setPointerCapture(e.pointerId); // 画面の外に指が出ても追いかける
+  setPointer(e);
+  canvas.setPointerCapture(e.pointerId); // 画面の外に出ても追いかける
 });
 canvas.addEventListener('pointermove', e => {
-  if (pointerActive) pointerX = toGameX(e.clientX);
+  if (pointerActive) setPointer(e);
 });
 canvas.addEventListener('pointerup', () => { pointerActive = false; });
 canvas.addEventListener('pointercancel', () => { pointerActive = false; });
@@ -423,8 +483,8 @@ function explode(x, y, colors, count) {
 }
 
 // 文字を出す（ふわっと上に消えていく）
-function addPopup(x, y, text, color) {
-  popups.push({ x: x, y: y, text: text, color: color, life: 0.9 });
+function addPopup(x, y, text, color, size) {
+  popups.push({ x: x, y: y, text: text, color: color, size: size || 18, life: 0.9 });
 }
 
 
@@ -463,32 +523,59 @@ function update(dt) {
 
   if (state === 'playing') {
     elapsed += dt;
-    // 時間とともに速くなる（約80秒で最大の2.6倍）
-    speedMul = Math.min(2.6, 1 + elapsed * 0.02);
+    // 時間とともに速くなる（モードごとに上がり方がちがう）
+    const m = MODES[mode];
+    speedMul = Math.min(m.maxSpeed, 1 + elapsed * m.speedUp);
+
+    // タイムアタックの残り時間
+    if (mode === 'time') {
+      timeLeft -= dt;
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        timeUp();
+      }
+    }
 
     // --- 宇宙船の移動 ---
     if (pointerActive) {
-      // 指の位置へなめらかに近づく
-      ship.x += (pointerX - ship.x) * Math.min(1, dt * 18);
+      // 指（マウス）の位置へなめらかに近づく
+      const k = Math.min(1, dt * 18);
+      ship.x += (pointerX - ship.x) * k;
+      ship.y += (pointerY - ship.y) * k;
     } else {
       if (keys.left) ship.x -= SHIP_SPEED * dt;
       if (keys.right) ship.x += SHIP_SPEED * dt;
+      if (keys.up) ship.y -= SHIP_SPEED * dt;
+      if (keys.down) ship.y += SHIP_SPEED * dt;
     }
+    // 画面の外や、上に行きすぎないようにする
     ship.x = Math.max(ship.r + 4, Math.min(W - ship.r - 4, ship.x));
+    ship.y = Math.max(MOVE_TOP, Math.min(H - 40, ship.y));
+  }
 
-    // --- 隕石 ---
+  // --- 隕石と星を動かす（結果画面の後ろでも動き続ける） ---
+  for (const m of meteors) {
+    m.y += m.vy * dt;
+    m.x += m.vx * dt;
+    m.angle += m.spin * dt;
+  }
+  for (const s of stars) {
+    s.y += s.vy * dt;
+    s.angle += dt * 2;
+    s.phase += dt * 3;
+    s.x += Math.sin(s.phase) * 20 * dt;
+  }
+
+  // --- 当たり判定（プレイ中だけ） ---
+  if (state === 'playing') {
     for (const m of meteors) {
-      m.y += m.vy * dt;
-      m.x += m.vx * dt;
-      m.angle += m.spin * dt;
-
       const dx = m.x - ship.x;
       const dy = m.y - ship.y;
       const hitDist = ship.r + m.r * 0.8; // 見た目より少し小さめに判定（やさしめ）
 
       // 当たった！
       if (Math.hypot(dx, dy) < hitDist) {
-        gameOver();
+        hitMeteor();
         break;
       }
 
@@ -504,16 +591,8 @@ function update(dt) {
         }
       }
     }
-    // 画面の下に出た隕石は消す
-    meteors = meteors.filter(m => m.y < H + m.r * 2);
 
-    // --- 星 ---
     for (const s of stars) {
-      s.y += s.vy * dt;
-      s.angle += dt * 2;
-      s.phase += dt * 3;
-      s.x += Math.sin(s.phase) * 20 * dt;
-
       // 星を取った！
       if (Math.hypot(s.x - ship.x, s.y - ship.y) < ship.r + s.r + 4) {
         s.taken = true;
@@ -525,15 +604,17 @@ function update(dt) {
         explode(s.x, s.y, ['#ffe27a', '#fff6c8'], 14);
       } else if (s.y > H + 20) {
         // 取り逃したらコンボがリセット
-        s.missed = true;
-        if (combo > 0) addPopup(W / 2, H - 40, 'COMBO LOST', '#ff8a8a');
+        if (combo > 0) addPopup(W / 2, H - 20, 'COMBO LOST', '#ff8a8a');
         combo = 0;
       }
     }
-    stars = stars.filter(s => !s.taken && !s.missed);
   }
 
-  // 爆発中：少し待ってからゲームオーバー画面を出す
+  // 画面の外に出たものと、取った星を消す
+  meteors = meteors.filter(m => m.y < H + m.r * 2);
+  stars = stars.filter(s => !s.taken && s.y <= H + 20);
+
+  // 終わりの演出中：少し待ってから結果画面を出す
   if (state === 'dying') {
     dyingTimer -= dt;
     if (dyingTimer <= 0) showGameOver();
@@ -572,7 +653,8 @@ function draw() {
 
   for (const s of stars) drawStar(s);
   for (const m of meteors) drawMeteor(m);
-  if (state === 'playing') drawShip();
+  // 船を描くのはプレイ中と、時間切れの演出中（当たったときは爆発しているので描かない）
+  if (state === 'playing' || (state === 'dying' && endReason === 'time')) drawShip();
 
   // 粒
   for (const p of particles) {
@@ -584,8 +666,8 @@ function draw() {
 
   // 文字
   ctx.textAlign = 'center';
-  ctx.font = 'bold 18px sans-serif';
   for (const p of popups) {
+    ctx.font = 'bold ' + p.size + 'px sans-serif';
     ctx.globalAlpha = Math.min(1, p.life * 2);
     ctx.fillStyle = p.color;
     ctx.fillText(p.text, p.x, p.y);
@@ -718,11 +800,263 @@ function drawHud() {
   ctx.font = 'bold 15px sans-serif';
   ctx.fillStyle = mul > 1 ? '#ffe27a' : '#9aa6d8';
   ctx.fillText('COMBO ' + combo + '   ×' + mul, 14, 54);
+
+  // タイムアタックの残り時間（数字と、画面のいちばん上のバー。残り10秒で赤くなる）
+  if (mode === 'time') {
+    const color = timeLeft <= 10 ? '#ff6b6b' : '#7af5ff';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillStyle = color;
+    ctx.fillText('TIME ' + Math.ceil(timeLeft), 14, 80);
+    ctx.fillRect(0, 0, W * (timeLeft / TIME_LIMIT), 4);
+  }
 }
 
 
 // -----------------------------------------------------
-// 13. ゲームループ（1秒に約60回 update → draw をくり返す）
+// 13. 自分のベスト3（このブラウザに保存）
+// -----------------------------------------------------
+
+// 保存されているベスト3を読む（モードごと）
+function myTop(m) {
+  return loadValue('starDodger.top.' + m, []);
+}
+
+// 今回のスコアを入れて、上位3件だけ残す。
+// 3位以内に入ったら、そのデータを返す（一覧で「NEW」と光らせるため）
+function addMyScore(m, value) {
+  if (value <= 0) return null;
+  const entry = { score: value, date: today() };
+  const list = myTop(m);
+  list.push(entry);
+  list.sort((a, b) => b.score - a.score);
+  const top3 = list.slice(0, 3);
+  saveValue('starDodger.top.' + m, top3);
+  return top3.includes(entry) ? entry : null;
+}
+
+// 一覧（<ol>）の中身をつくる。rows は { label, points, className } の配列
+function renderRows(ol, rows, emptyText) {
+  ol.textContent = '';
+  if (rows.length === 0) {
+    const li = document.createElement('li');
+    li.className = 'empty';
+    li.textContent = emptyText;
+    ol.appendChild(li);
+    return;
+  }
+  rows.forEach((row, i) => {
+    const li = document.createElement('li');
+    if (row.className) li.className = row.className;
+    const rank = document.createElement('span');
+    rank.className = 'rank';
+    rank.textContent = (i + 1) + '.';
+    const who = document.createElement('span');
+    who.className = 'who';
+    who.textContent = row.label;     // textContent なので、名前にタグが入っていても安全
+    const pts = document.createElement('span');
+    pts.className = 'pts';
+    pts.textContent = row.points;
+    li.append(rank, who, pts);
+    ol.appendChild(li);
+  });
+}
+
+function renderMyList(ol, m, newEntry) {
+  const rows = myTop(m).map(e => ({
+    label: e.date + (newEntry && e.score === newEntry.score && e.date === newEntry.date ? '  NEW!' : ''),
+    points: e.score,
+    className: newEntry && e.score === newEntry.score && e.date === newEntry.date ? 'new' : '',
+  }));
+  renderRows(ol, rows, 'まだ記録がありません');
+}
+
+
+// -----------------------------------------------------
+// 14. 世界のみんなのスコア（公開ページの共有データベースを使う）
+//     自分のPCで動かしたときは使えないので、そのときは案内だけ出す
+// -----------------------------------------------------
+// データの形：scores/<プレイヤーID> = { name, time, timeDate, endless, endlessDate }
+//   1人1つのデータに、モードごとの自己ベストを入れる（だからTOP10は「上位10人」になる）
+const world = {
+  status: 'loading',   // 'loading' / 'ready'（使える） / 'local'（自分のPCで動かしている） / 'off'（使えない）
+  db: null,
+  uid: null,           // 自分のプレイヤーID
+  canWrite: null,      // 登録できるか（null は「わからない」→ 試してみて決める）
+  mine: {},            // 自分の登録データ
+  top: { time: [], endless: [] },
+};
+let submitted = false;     // 今回のスコアを登録したか
+let submitMessage = '';    // 登録したときのメッセージ
+
+async function initWorld() {
+  // 公開ページの外（自分のPCのサーバーなど）では window.claude がない
+  if (!window.claude || !window.claude.use) {
+    world.status = 'local';
+    renderAllWorld();
+    return;
+  }
+  const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+  if (!db) {
+    world.status = 'off';
+    renderAllWorld();
+    return;
+  }
+  world.db = db;
+  world.status = 'ready';
+
+  // モードごとに「スコアの高い順に10人」を見張る。だれかが登録すると自動で更新される
+  for (const m of Object.keys(MODES)) {
+    db.collection('scores').orderBy(m, 'desc').limit(10).onSnapshot(
+      snap => {
+        world.top[m] = snap.docs
+          .map(d => ({ id: d.id, data: d.data() }))
+          .filter(r => typeof r.data[m] === 'number' && r.data[m] > 0);
+        renderAllWorld();
+      },
+      () => {
+        world.status = 'off';
+        renderAllWorld();
+      }
+    );
+  }
+
+  // 自分のIDと、登録できるかどうかを調べる
+  if (user) {
+    world.uid = await user.id();
+    world.canWrite = await user.can('data.write');
+    if (world.uid) {
+      try {
+        const snap = await db.doc('scores/' + world.uid).get();
+        if (snap.exists) world.mine = Object.assign({}, snap.data());
+      } catch (e) {
+        // 読めなくても、登録するときに作りなおすので大丈夫
+      }
+    }
+  }
+  renderAllWorld();
+}
+
+// 世界ランキングの一覧をつくる
+function renderWorldList(ol, statusEl, m) {
+  if (world.status !== 'ready') {
+    renderRows(ol, [], '—');
+    statusEl.textContent = {
+      loading: '読み込み中…',
+      local: '世界ランキングは、公開ページで遊んだときに表示されます',
+      off: '世界ランキングを読み込めませんでした',
+    }[world.status];
+    return;
+  }
+  const rows = world.top[m].map(r => ({
+    label: String(r.data.name || '???').slice(0, 12),
+    points: Number(r.data[m]) || 0,
+    className: r.id === world.uid ? 'me' : '',
+  }));
+  renderRows(ol, rows, 'まだ記録がありません。最初の1人になろう！');
+  statusEl.textContent = '';
+}
+
+// 結果画面の世界ランキングと、登録フォームを表示する
+function renderOverWorld() {
+  const statusEl = $('worldStatus');
+  const form = $('entryForm');
+  renderWorldList($('overWorldList'), statusEl, mode);
+  form.classList.add('hidden');
+  if (world.status !== 'ready') return;
+
+  const myBest = Number(world.mine[mode]) || 0;
+  if (submitMessage) {
+    statusEl.textContent = submitMessage;
+  } else if (score <= 0) {
+    statusEl.textContent = '';
+  } else if (!world.uid) {
+    statusEl.textContent = 'ログインすると、ランキングに登録できます';
+  } else if (world.canWrite === false) {
+    statusEl.textContent = 'このページでは、ランキングを見ることだけできます';
+  } else if (score > myBest && !submitted) {
+    statusEl.textContent = myBest > 0
+      ? '自己ベスト更新！（前回 ' + myBest + '）なまえを入れて登録しよう'
+      : 'なまえを入れて、ランキングに登録しよう';
+    form.classList.remove('hidden');
+    if (!nameInput.value) nameInput.value = world.mine.name || loadValue('starDodger.name', '');
+  } else {
+    statusEl.textContent = 'ランキングに登録されているあなたのベスト：' + myBest;
+  }
+}
+
+function renderAllWorld() {
+  if (state === 'over') renderOverWorld();
+  renderRankScreen();
+}
+
+// 「登録」ボタン：自分のデータに今回のスコアを書きこむ
+async function submitScore() {
+  const name = nameInput.value.trim().slice(0, 12);
+  if (!name) {
+    $('worldStatus').textContent = 'なまえを入れてね';
+    return;
+  }
+  submitBtn.disabled = true;
+  const next = Object.assign({}, world.mine, { name: name });
+  next[mode] = score;
+  next[mode + 'Date'] = today();
+  try {
+    await world.db.doc('scores/' + world.uid).set(next);
+    world.mine = next;
+    saveValue('starDodger.name', name);
+    submitted = true;
+    submitMessage = '登録しました！';
+  } catch (e) {
+    if (e && e.code === 'invalid_argument') {
+      // 書きこみが許可されていない人だった → これ以降フォームを出さない
+      world.canWrite = false;
+    } else {
+      // 通信の不調など → フォームは残して、もう一度押せるようにする
+      submitBtn.disabled = false;
+      renderOverWorld();
+      $('worldStatus').textContent = '登録できませんでした。少し待ってからもう一度ためしてね';
+      return;
+    }
+  }
+  submitBtn.disabled = false;
+  renderOverWorld();
+}
+submitBtn.addEventListener('click', submitScore);
+nameInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitScore();
+});
+
+
+// -----------------------------------------------------
+// 15. ランキング画面（モード選択から開く）
+// -----------------------------------------------------
+let rankMode = 'time';
+
+function renderRankScreen() {
+  renderMyList($('rankMyList'), rankMode, null);
+  renderWorldList($('rankWorldList'), $('rankWorldStatus'), rankMode);
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.mode === rankMode);
+  });
+}
+
+$('rankBtn').addEventListener('click', () => {
+  renderRankScreen();
+  showScreen('rank');
+});
+$('backBtn').addEventListener('click', () => showScreen('start'));
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    rankMode = tab.dataset.mode;
+    renderRankScreen();
+  });
+});
+
+initWorld();
+
+
+// -----------------------------------------------------
+// 16. ゲームループ（1秒に約60回 update → draw をくり返す）
 // -----------------------------------------------------
 let lastTime = performance.now();
 
