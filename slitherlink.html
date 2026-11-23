@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#16171b">
+<title>ループ道場</title>
+<style>
+:root {
+  --bg: #f4efe6; --panel: #fffdf9; --panel2: #efe8dc; --ink: #2a2520; --muted: #968c80;
+  --line: #2d5fd3; --accent: #e2763a; --good: #2f9e62; --bad: #d63c3c; --gold: #e7a91c;
+  --dot: #4a433b; --shadow: 0 2px 10px rgba(60,40,20,.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16171b; --panel: #22242a; --panel2: #2c2f37; --ink: #ece8e1; --muted: #8b8f99;
+    --line: #6f9dff; --accent: #ff9a5c; --good: #4cc786; --bad: #ff6464; --gold: #ffc53d;
+    --dot: #c9c4bb; --shadow: 0 2px 10px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16171b; --panel: #22242a; --panel2: #2c2f37; --ink: #ece8e1; --muted: #8b8f99;
+  --line: #6f9dff; --accent: #ff9a5c; --good: #4cc786; --bad: #ff6464; --gold: #ffc53d;
+  --dot: #c9c4bb; --shadow: 0 2px 10px rgba(0,0,0,.3);
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--ink);
+  font-family: -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif; }
+body { min-height: 100vh; overscroll-behavior: none; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+.wrap { max-width: 560px; margin: 0 auto; padding: 16px 16px 40px; }
+.screen { display: none; }
+.screen.on { display: block; animation: fade .25s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+h1 { font-size: 26px; margin: 8px 0 4px; letter-spacing: .04em; }
+.sub { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+.card { background: var(--panel); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); margin-bottom: 14px; }
+.rank-top { display: flex; align-items: center; gap: 12px; }
+.rank-badge { width: 52px; height: 52px; border-radius: 14px; background: var(--accent); color: #fff;
+  display: grid; place-items: center; font-weight: 800; font-size: 20px; flex: none; }
+.rank-name { font-weight: 700; font-size: 18px; }
+.rank-xp { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.bar { height: 10px; background: var(--panel2); border-radius: 99px; overflow: hidden; margin-top: 12px; }
+.bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 99px; transition: width .8s ease; }
+.btn { display: block; width: 100%; padding: 15px 16px; border-radius: 14px; background: var(--panel2); font-weight: 700; font-size: 16px; text-align: left; }
+.btn.primary { background: var(--accent); color: #fff; }
+.btn small { display: block; font-weight: 400; font-size: 12px; opacity: .8; margin-top: 2px; }
+.btn + .btn { margin-top: 10px; }
+.row { display: flex; gap: 10px; }
+.row > * { flex: 1; }
+.label { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .08em; margin: 18px 4px 8px; }
+.free-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.free-grid .btn { margin: 0; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+.stats b { display: block; font-size: 20px; }
+.stats span { font-size: 11px; color: var(--muted); }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.badge { background: var(--panel2); border-radius: 12px; padding: 10px 6px; text-align: center; font-size: 11px; line-height: 1.35; opacity: .4; }
+.badge.got { opacity: 1; background: color-mix(in srgb, var(--gold) 22%, var(--panel)); }
+.badge .ic { font-size: 22px; display: block; margin-bottom: 2px; }
+.streak { color: var(--accent); font-weight: 700; }
+
+/* stage select */
+.topbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; min-height: 44px; }
+.topbar .title { flex: 1; font-weight: 700; font-size: 17px; text-align: center; }
+.icon-btn { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; background: var(--panel); box-shadow: var(--shadow); }
+.chapter { margin-bottom: 18px; }
+.chapter h3 { margin: 0 4px 8px; font-size: 14px; display: flex; justify-content: space-between; }
+.chapter h3 span { color: var(--muted); font-weight: 400; }
+.stage-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.stage { aspect-ratio: 1; border-radius: 12px; background: var(--panel); box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+.stage .st { font-size: 10px; color: var(--gold); letter-spacing: -1px; height: 12px; }
+.stage.locked { opacity: .35; }
+.stage.next { outline: 2px solid var(--accent); }
+
+/* game */
+.hud { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); margin: 0 2px 8px; }
+.hud .timer { font-variant-numeric: tabular-nums; font-size: 18px; color: var(--ink); font-weight: 700; }
+#boardWrap { position: relative; background: var(--panel); border-radius: 16px; box-shadow: var(--shadow); padding: 4px; }
+#board { display: block; margin: 0 auto; touch-action: none; }
+.tools { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 12px; }
+.tool { background: var(--panel); border-radius: 12px; padding: 8px 2px; box-shadow: var(--shadow); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.tool .ic { font-size: 20px; line-height: 1.2; }
+.tool.on { background: var(--accent); color: #fff; }
+.tool:disabled { opacity: .35; }
+#msg { min-height: 22px; text-align: center; font-size: 13px; margin-top: 10px; color: var(--muted); }
+#msg.warn { color: var(--bad); }
+#msg.ok { color: var(--good); }
+
+/* modal */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 20; }
+.modal.on { display: flex; }
+.modal .card { width: 100%; max-width: 400px; text-align: center; animation: pop .35s cubic-bezier(.2,1.4,.4,1); }
+@keyframes pop { from { transform: scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
+.big-stars { font-size: 40px; letter-spacing: 6px; margin: 6px 0; }
+.big-stars i { font-style: normal; color: var(--panel2); display: inline-block; }
+.big-stars i.got { color: var(--gold); animation: starIn .5s cubic-bezier(.2,1.6,.4,1) both; }
+.big-stars i.got:nth-child(2) { animation-delay: .2s; } .big-stars i.got:nth-child(3) { animation-delay: .4s; }
+@keyframes starIn { from { transform: scale(0) rotate(-90deg); } to { transform: none; } }
+.res-line { display: flex; justify-content: space-between; padding: 6px 4px; border-bottom: 1px solid var(--panel2); font-size: 14px; }
+.res-line:last-of-type { border-bottom: 0; }
+.newbadge { background: color-mix(in srgb, var(--gold) 25%, var(--panel)); border-radius: 10px; padding: 8px; margin-top: 10px; font-size: 13px; }
+.rules { text-align: left; font-size: 14px; line-height: 1.7; }
+.rules ol { padding-left: 20px; margin: 8px 0; }
+#spinner { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px; color: var(--muted); font-size: 13px; background: var(--panel); border-radius: 16px; }
+#spinner.on { display: flex; }
+.loop-anim { width: 36px; height: 36px; border: 4px solid var(--panel2); border-top-color: var(--line); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 99px; font-size: 13px; z-index: 40; opacity: 0; transition: opacity .3s; pointer-events: none; }
+.toast.on { opacity: .95; }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+
+<!-- HOME -->
+<div class="screen on" id="home"><div class="wrap">
+  <h1>ループ道場</h1>
+  <div class="sub">数字を手がかりに、ひとつながりの輪をつくろう</div>
+
+  <div class="card">
+    <div class="rank-top">
+      <div class="rank-badge" id="rankLv">1</div>
+      <div style="flex:1">
+        <div class="rank-name" id="rankName">見習い</div>
+        <div class="rank-xp" id="rankXp">0 / 50 XP</div>
+      </div>
+    </div>
+    <div class="bar"><i id="rankBar" style="width:0%"></i></div>
+  </div>
+
+  <button class="btn primary" id="btnNext">ステージ 1 に挑戦<small id="btnNextSub">5×5 かんたん</small></button>
+  <button class="btn" id="btnResume" style="display:none">つづきから<small id="btnResumeSub"></small></button>
+  <button class="btn" id="btnDaily">今日の一問 <span class="streak" id="streakTxt"></span><small id="dailySub"></small></button>
+  <button class="btn" id="btnStages">ステージ一覧<small id="stageSub"></small></button>
+
+  <div class="label">フリープレイ</div>
+  <div class="free-grid">
+    <button class="btn" data-free="0">かんたん<small>6×6</small></button>
+    <button class="btn" data-free="1">ふつう<small>7×7</small></button>
+    <button class="btn" data-free="2">むずかしい<small>8×8</small></button>
+    <button class="btn" data-free="3">鬼<small>10×10</small></button>
+  </div>
+
+  <div class="label">きろく</div>
+  <div class="card">
+    <div class="stats">
+      <div><b id="stClears">0</b><span>クリア数</span></div>
+      <div><b id="stStars">0</b><span>獲得した★</span></div>
+      <div><b id="stBestStreak">0</b><span>最長連続日数</span></div>
+    </div>
+  </div>
+
+  <div class="label">称号バッジ <span id="badgeCount"></span></div>
+  <div class="badges" id="badges"></div>
+
+  <div class="label">そのほか</div>
+  <div class="row">
+    <button class="btn" id="btnRules" style="text-align:center">遊び方</button>
+    <button class="btn" id="btnTheme" style="text-align:center">テーマ: 自動</button>
+  </div>
+</div></div>
+
+<!-- STAGES -->
+<div class="screen" id="stages"><div class="wrap">
+  <div class="topbar"><button class="icon-btn" data-home>‹</button><div class="title">ステージ一覧</div><div style="width:44px"></div></div>
+  <div id="chapters"></div>
+</div></div>
+
+<!-- GAME -->
+<div class="screen" id="game"><div class="wrap">
+  <div class="topbar">
+    <button class="icon-btn" data-home>‹</button>
+    <div class="title" id="gTitle">ステージ 1</div>
+    <button class="icon-btn" id="btnHelp">?</button>
+  </div>
+  <div class="hud">
+    <span id="gInfo">5×5 かんたん</span>
+    <span class="timer" id="gTimer">0:00</span>
+    <span id="gPar">★3 目標 1:30</span>
+  </div>
+  <div id="boardWrap">
+    <canvas id="board"></canvas>
+    <div id="spinner"><div class="loop-anim"></div><div id="spinTxt">問題をつくっています…</div></div>
+  </div>
+  <div id="msg">タップで線 → × → 消す。なぞると線が引けます</div>
+  <div class="tools">
+    <button class="tool" id="tUndo"><span class="ic">↶</span>戻す</button>
+    <button class="tool" id="tRedo"><span class="ic">↷</span>進む</button>
+    <button class="tool" id="tCross"><span class="ic">×</span>×モード</button>
+    <button class="tool" id="tCheck"><span class="ic">✓</span>チェック</button>
+    <button class="tool" id="tHint"><span class="ic">💡</span>ヒント</button>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button class="btn" id="tReset" style="text-align:center;font-size:14px;padding:10px">最初から</button>
+  </div>
+</div></div>
+
+<!-- CLEAR MODAL -->
+<div class="modal" id="clearModal"><div class="card">
+  <div style="font-size:22px;font-weight:800" id="cTitle">クリア！</div>
+  <div class="big-stars" id="cStars"><i>★</i><i>★</i><i>★</i></div>
+  <div id="cLines"></div>
+  <div class="bar" style="margin:14px 0 4px"><i id="cBar" style="width:0%"></i></div>
+  <div class="rank-xp" id="cRank" style="text-align:left"></div>
+  <div id="cBadges"></div>
+  <div class="row" style="margin-top:14px">
+    <button class="btn" id="cHome" style="text-align:center">ホーム</button>
+    <button class="btn primary" id="cNext" style="text-align:center">次へ</button>
+  </div>
+</div></div>
+
+<!-- RULES MODAL -->
+<div class="modal" id="rulesModal"><div class="card rules">
+  <div style="font-size:18px;font-weight:800;text-align:center">遊び方</div>
+  <ol>
+    <li>点と点の間に線を引いて、<b>ひとつながりの輪（ループ）</b>をつくります。</li>
+    <li>数字は、そのマスの<b>まわり4辺のうち線が引かれる本数</b>です。</li>
+    <li>線は枝分かれも交差もしません。輪はひとつだけです。</li>
+    <li>数字のないマスは何本でもOK。</li>
+  </ol>
+  <div style="color:var(--muted);font-size:13px">
+    操作：辺をタップで「線 → × → 消す」。点から点へなぞると連続で線が引けます（線の上からなぞると消せます）。<br>
+    ×は「ここには線が来ない」というメモです。<br>
+    ★1 クリア　★2 ヒントなし　★3 ヒントなし＆目標タイム以内
+  </div>
+  <button class="btn primary" id="rulesClose" style="text-align:center;margin-top:14px">わかった</button>
+</div></div>
+
+<script id="engine">
+// ===== Slitherlink engine (generator / solver) =====
+var SL = (function () {
+  function makeRng(seed) {
+    var a = seed >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hashStr(s) {
+    var h = 2166136261;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+
+  // ---- topology ----
+  function Topo(R, C) {
+    var t = { R: R, C: C };
+    var H = (R + 1) * C, V = R * (C + 1);
+    t.H = H; t.E = H + V; t.NV = (R + 1) * (C + 1); t.NC = R * C;
+    t.hId = function (r, c) { return r * C + c; };
+    t.vId = function (r, c) { return H + r * (C + 1) + c; };
+    t.ptId = function (r, c) { return r * (C + 1) + c; };
+    t.edgeV = []; t.edgeCells = []; t.cellEdges = []; t.vertEdges = [];
+    for (var i = 0; i < t.NV; i++) t.vertEdges.push([]);
+    for (var e = 0; e < t.E; e++) {
+      var a, b, cells = [];
+      if (e < H) {
+        var r = Math.floor(e / C), c = e % C;
+        a = t.ptId(r, c); b = t.ptId(r, c + 1);
+        if (r > 0) cells.push((r - 1) * C + c);
+        if (r < R) cells.push(r * C + c);
+      } else {
+        var k = e - H, r2 = Math.floor(k / (C + 1)), c2 = k % (C + 1);
+        a = t.ptId(r2, c2); b = t.ptId(r2 + 1, c2);
+        if (c2 > 0) cells.push(r2 * C + c2 - 1);
+        if (c2 < C) cells.push(r2 * C + c2);
+      }
+      t.edgeV.push([a, b]); t.edgeCells.push(cells);
+      t.vertEdges[a].push(e); t.vertEdges[b].push(e);
+    }
+    for (var r3 = 0; r3 < R; r3++) for (var c3 = 0; c3 < C; c3++) {
+      t.cellEdges.push([t.hId(r3, c3), t.hId(r3 + 1, c3), t.vId(r3, c3), t.vId(r3, c3 + 1)]);
+    }
+    return t;
+  }
+
+  // ---- loop generation (region growing) ----
+  function genLoop(R, C, rng) {
+    var N = R * C;
+    for (var attempt = 0; attempt < 50; attempt++) {
+      var ins = new Uint8Array(N);
+      var start = Math.floor(rng() * N);
+      ins[start] = 1;
+      var count = 1;
+      var target = Math.floor(N * (0.5 + rng() * 0.15));
+      var fails = 0;
+      while (count < target && fails < N * 6) {
+        // frontier
+        var fr = [];
+        for (var i = 0; i < N; i++) {
+          if (ins[i]) continue;
+          var nb = insideNeighbors(ins, R, C, i);
+          if (nb > 0) { fr.push(i); if (nb === 1) { fr.push(i); fr.push(i); } }
+        }
+        if (!fr.length) break;
+        var cand = fr[Math.floor(rng() * fr.length)];
+        ins[cand] = 1;
+        if (validRegion(ins, R, C)) count++;
+        else { ins[cand] = 0; fails++; }
+      }
+      if (count >= N * 0.4) return ins;
+    }
+    return ins;
+  }
+  function insideNeighbors(ins, R, C, i) {
+    var r = Math.floor(i / C), c = i % C, n = 0;
+    if (r > 0 && ins[i - C]) n++;
+    if (r < R - 1 && ins[i + C]) n++;
+    if (c > 0 && ins[i - 1]) n++;
+    if (c < C - 1 && ins[i + 1]) n++;
+    return n;
+  }
+  function cellIn(ins, R, C, r, c) {
+    if (r < 0 || c < 0 || r >= R || c >= C) return 0;
+    return ins[r * C + c];
+  }
+  function validRegion(ins, R, C) {
+    // no checkerboard at any vertex
+    for (var r = 0; r <= R; r++) for (var c = 0; c <= C; c++) {
+      var a = cellIn(ins, R, C, r - 1, c - 1), b = cellIn(ins, R, C, r - 1, c),
+        d = cellIn(ins, R, C, r, c - 1), e = cellIn(ins, R, C, r, c);
+      if (a === e && b === d && a !== b) return false;
+    }
+    // every outside cell connected to exterior
+    var N = R * C, seen = new Uint8Array(N), q = [];
+    for (var i = 0; i < N; i++) {
+      var rr = Math.floor(i / C), cc = i % C;
+      if (!ins[i] && (rr === 0 || cc === 0 || rr === R - 1 || cc === C - 1)) { seen[i] = 1; q.push(i); }
+    }
+    while (q.length) {
+      var x = q.pop(), xr = Math.floor(x / C), xc = x % C;
+      var ns = [];
+      if (xr > 0) ns.push(x - C); if (xr < R - 1) ns.push(x + C);
+      if (xc > 0) ns.push(x - 1); if (xc < C - 1) ns.push(x + 1);
+      for (var j = 0; j < ns.length; j++) { var y = ns[j]; if (!ins[y] && !seen[y]) { seen[y] = 1; q.push(y); } }
+    }
+    for (var k = 0; k < N; k++) if (!ins[k] && !seen[k]) return false;
+    return true;
+  }
+
+  function solutionFromRegion(t, ins) {
+    var sol = new Int8Array(t.E);
+    for (var e = 0; e < t.E; e++) {
+      var cs = t.edgeCells[e];
+      var a = cs.length > 0 ? ins[cs[0]] : 0;
+      var b = cs.length > 1 ? ins[cs[1]] : 0;
+      sol[e] = (a !== b) ? 1 : 0;
+    }
+    return sol;
+  }
+  function cluesFromSolution(t, sol) {
+    var cl = new Int8Array(t.NC);
+    for (var i = 0; i < t.NC; i++) {
+      var n = 0, ce = t.cellEdges[i];
+      for (var j = 0; j < 4; j++) n += sol[ce[j]];
+      cl[i] = n;
+    }
+    return cl;
+  }
+
+  // ---- solver ----
+  // state: Int8Array of edges: -1 unknown, 0 cross, 1 line
+  // clues: Int8Array, -1 = none
+  function Solver(t, clues) {
+    this.t = t; this.clues = clues;
+  }
+  // returns false on contradiction. Mutates s.
+  Solver.prototype.propagate = function (s) {
+    var t = this.t, clues = this.clues;
+    var cq = [], vq = [], inC = new Uint8Array(t.NC), inV = new Uint8Array(t.NV);
+    var i;
+    for (i = 0; i < t.NC; i++) if (clues[i] >= 0) { cq.push(i); inC[i] = 1; }
+    for (i = 0; i < t.NV; i++) { vq.push(i); inV[i] = 1; }
+    var self = this;
+    function setE(e, val) {
+      if (s[e] === val) return true;
+      if (s[e] !== -1) return false;
+      s[e] = val;
+      var cs = t.edgeCells[e];
+      for (var k = 0; k < cs.length; k++) if (clues[cs[k]] >= 0 && !inC[cs[k]]) { inC[cs[k]] = 1; cq.push(cs[k]); }
+      var vs = t.edgeV[e];
+      for (var k2 = 0; k2 < 2; k2++) if (!inV[vs[k2]]) { inV[vs[k2]] = 1; vq.push(vs[k2]); }
+      return true;
+    }
+    for (;;) {
+      while (cq.length || vq.length) {
+        if (cq.length) {
+          var c = cq.pop(); inC[c] = 0;
+          var ce = t.cellEdges[c], ln = 0, un = 0;
+          for (i = 0; i < 4; i++) { if (s[ce[i]] === 1) ln++; else if (s[ce[i]] === -1) un++; }
+          var n = clues[c];
+          if (ln > n || ln + un < n) return false;
+          if (un) {
+            if (ln === n) { for (i = 0; i < 4; i++) if (s[ce[i]] === -1 && !setE(ce[i], 0)) return false; }
+            else if (ln + un === n) { for (i = 0; i < 4; i++) if (s[ce[i]] === -1 && !setE(ce[i], 1)) return false; }
+          }
+        } else {
+          var v = vq.pop(); inV[v] = 0;
+          var ve = t.vertEdges[v], l2 = 0, u2 = 0;
+          for (i = 0; i < ve.length; i++) { if (s[ve[i]] === 1) l2++; else if (s[ve[i]] === -1) u2++; }
+          if (l2 > 2) return false;
+          if (l2 === 1 && u2 === 0) return false;
+          if (u2) {
+            if (l2 === 2 || (l2 === 0 && u2 === 1)) { for (i = 0; i < ve.length; i++) if (s[ve[i]] === -1 && !setE(ve[i], 0)) return false; }
+            else if (l2 === 1 && u2 === 1) { for (i = 0; i < ve.length; i++) if (s[ve[i]] === -1 && !setE(ve[i], 1)) return false; }
+          }
+        }
+      }
+      // loop rule
+      var lr = this.loopRule(s, setE);
+      if (lr === false) return false;
+      if (lr === 0) return true; // no change
+    }
+  };
+  // returns false contradiction, 0 no change, 1 changed
+  Solver.prototype.loopRule = function (s, setE) {
+    var t = this.t, clues = this.clues;
+    var par = new Int32Array(t.NV);
+    for (var i = 0; i < t.NV; i++) par[i] = i;
+    function find(x) { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; }
+    var totalLines = 0, cycle = false, cycleRoot = -1;
+    var compEdges = new Int32Array(t.NV);
+    for (var e = 0; e < t.E; e++) {
+      if (s[e] !== 1) continue;
+      totalLines++;
+      var a = find(t.edgeV[e][0]), b = find(t.edgeV[e][1]);
+      if (a === b) { cycle = true; cycleRoot = a; compEdges[a]++; }
+      else { par[a] = b; compEdges[b] += compEdges[a] + 1; }
+    }
+    if (cycle) {
+      cycleRoot = find(cycleRoot);
+      if (compEdges[cycleRoot] !== totalLines) return false;
+      for (var c = 0; c < t.NC; c++) {
+        if (clues[c] < 0) continue;
+        var ce = t.cellEdges[c], ln = 0;
+        for (var j = 0; j < 4; j++) if (s[ce[j]] === 1) ln++;
+        if (ln !== clues[c]) return false;
+      }
+      var ch = 0;
+      for (var e2 = 0; e2 < t.E; e2++) if (s[e2] === -1) { s[e2] = 0; ch = 1; }
+      return ch;
+    }
+    var changed = 0;
+    // unsatisfied clue count precompute
+    var deficit = 0;
+    var cellLines = new Int8Array(t.NC);
+    for (var c2 = 0; c2 < t.NC; c2++) {
+      var ce2 = t.cellEdges[c2], l = 0;
+      for (var j2 = 0; j2 < 4; j2++) if (s[ce2[j2]] === 1) l++;
+      cellLines[c2] = l;
+      if (clues[c2] >= 0 && l !== clues[c2]) deficit += clues[c2] - l;
+    }
+    for (var e3 = 0; e3 < t.E; e3++) {
+      if (s[e3] !== -1) continue;
+      var a3 = find(t.edgeV[e3][0]), b3 = find(t.edgeV[e3][1]);
+      if (a3 !== b3) continue;
+      // closing this edge makes a cycle; valid only if it completes the puzzle
+      var ok = compEdges[a3] === totalLines;
+      if (ok) {
+        // all clue cells must be satisfied after adding e3
+        var cs = t.edgeCells[e3], fix = 0;
+        for (var k = 0; k < cs.length; k++) {
+          var cc = cs[k];
+          if (clues[cc] >= 0) {
+            if (cellLines[cc] + 1 > clues[cc]) ok = false;
+            else fix += 1;
+          }
+        }
+        if (ok && deficit !== fix) ok = false;
+      }
+      if (!ok) { if (!setE(e3, 0)) return false; changed = 1; }
+    }
+    return changed;
+  };
+  Solver.prototype.isSolved = function (s) {
+    var t = this.t;
+    for (var e = 0; e < t.E; e++) if (s[e] === -1) return false;
+    return this.validComplete(s);
+  };
+  Solver.prototype.validComplete = function (s) {
+    var t = this.t, clues = this.clues;
+    for (var c = 0; c < t.NC; c++) {
+      if (clues[c] < 0) continue;
+      var ce = t.cellEdges[c], ln = 0;
+      for (var j = 0; j < 4; j++) if (s[ce[j]] === 1) ln++;
+      if (ln !== clues[c]) return false;
+    }
+    var start = -1, total = 0;
+    for (var v = 0; v < t.NV; v++) {
+      var ve = t.vertEdges[v], d = 0;
+      for (var i = 0; i < ve.length; i++) if (s[ve[i]] === 1) d++;
+      if (d !== 0 && d !== 2) return false;
+    }
+    for (var e = 0; e < t.E; e++) if (s[e] === 1) { total++; if (start < 0) start = e; }
+    if (!total) return false;
+    // walk loop
+    var seen = new Uint8Array(t.E), cnt = 0, cur = start, vtx = t.edgeV[start][0];
+    for (;;) {
+      seen[cur] = 1; cnt++;
+      var nv = t.edgeV[cur][0] === vtx ? t.edgeV[cur][1] : t.edgeV[cur][0];
+      var nx = -1, ve2 = t.vertEdges[nv];
+      for (var k = 0; k < ve2.length; k++) if (s[ve2[k]] === 1 && ve2[k] !== cur) nx = ve2[k];
+      if (nx === start || nx < 0) break;
+      if (seen[nx]) return false;
+      vtx = nv; cur = nx;
+    }
+    return cnt === total;
+  };
+  Solver.prototype.unknowns = function (s) { var n = 0; for (var e = 0; e < s.length; e++) if (s[e] === -1) n++; return n; };
+
+  // level 1 trial: assume, propagate, contradiction => opposite. returns false on contradiction
+  // opts.intersect: also fix edges common to both branches
+  Solver.prototype.trialSolve = function (s, opts) {
+    opts = opts || {};
+    if (!this.propagate(s)) return false;
+    var t = this.t, progress = true, rounds = 0;
+    while (progress && this.unknowns(s) > 0) {
+      progress = false;
+      for (var e = 0; e < t.E; e++) {
+        if (s[e] !== -1) continue;
+        var a = s.slice(); a[e] = 1;
+        var okA = this.propagate(a);
+        if (!okA) { s[e] = 0; if (!this.propagate(s)) return false; progress = true; rounds++; continue; }
+        var b = s.slice(); b[e] = 0;
+        var okB = this.propagate(b);
+        if (!okB) { s[e] = 1; if (!this.propagate(s)) return false; progress = true; rounds++; continue; }
+        if (opts.intersect) {
+          var ch = false;
+          for (var k = 0; k < t.E; k++) if (s[k] === -1 && a[k] !== -1 && a[k] === b[k]) { s[k] = a[k]; ch = true; }
+          if (ch) { if (!this.propagate(s)) return false; progress = true; rounds++; }
+        }
+      }
+    }
+    this.lastRounds = rounds;
+    return true;
+  };
+
+  // count solutions up to limit
+  Solver.prototype.count = function (s, limit) {
+    var self = this, t = this.t, found = 0;
+    function rec(st) {
+      if (!self.propagate(st)) return;
+      // pick branch edge: unknown edge at a vertex with degree 1
+      var pick = -1;
+      for (var v = 0; v < t.NV && pick < 0; v++) {
+        var ve = t.vertEdges[v], l = 0, u = -1;
+        for (var i = 0; i < ve.length; i++) { if (st[ve[i]] === 1) l++; else if (st[ve[i]] === -1) u = ve[i]; }
+        if (l === 1 && u >= 0) pick = u;
+      }
+      if (pick < 0) for (var e = 0; e < t.E; e++) if (st[e] === -1) { pick = e; break; }
+      if (pick < 0) { if (self.validComplete(st)) found++; return; }
+      var a = st.slice(); a[pick] = 1; rec(a);
+      if (found >= limit) return;
+      var b = st.slice(); b[pick] = 0; rec(b);
+    }
+    rec(s.slice());
+    return found;
+  };
+
+  function blank(t) { var s = new Int8Array(t.E); s.fill(-1); return s; }
+
+  // level: 0 easy(propagation), 1 normal(trial), 2 hard(trial+intersect), 3 expert(any unique)
+  function solvableAt(t, clues, level) {
+    var sv = new Solver(t, clues), s = blank(t);
+    if (level === 0) { if (!sv.propagate(s)) return false; return sv.isSolved(s); }
+    if (level === 1 || level === 2) { if (!sv.trialSolve(s, { intersect: level === 2 })) return false; return sv.isSolved(s); }
+    if (!sv.trialSolve(s, { intersect: true })) return false;
+    if (sv.unknowns(s) === 0) return sv.isSolved(s);
+    return sv.count(s, 2) === 1;
+  }
+
+  function generate(R, C, level, seed) {
+    var rng = makeRng(seed);
+    var t = Topo(R, C);
+    for (var tries = 0; tries < 20; tries++) {
+      var ins = genLoop(R, C, rng);
+      var sol = solutionFromRegion(t, ins);
+      var full = cluesFromSolution(t, sol);
+      var clues = Int8Array.from(full);
+      if (!solvableAt(t, clues, level)) continue;
+      // removal order
+      var order = [];
+      for (var i = 0; i < t.NC; i++) order.push(i);
+      for (var j = order.length - 1; j > 0; j--) { var k = Math.floor(rng() * (j + 1)); var tmp = order[j]; order[j] = order[k]; order[k] = tmp; }
+      for (var m = 0; m < order.length; m++) {
+        var c = order[m], old = clues[c];
+        clues[c] = -1;
+        if (!solvableAt(t, clues, level)) clues[c] = old;
+      }
+      // for higher levels, make sure it isn't trivially solvable at lower level
+      if (level >= 1 && solvableAt(t, clues, 0) && tries < 8) continue;
+      if (level >= 3 && solvableAt(t, clues, 2) && tries < 8) continue;
+      return { R: R, C: C, level: level, clues: Array.from(clues), sol: Array.from(sol) };
+    }
+    return { R: R, C: C, level: level, clues: Array.from(clues), sol: Array.from(sol) };
+  }
+
+  // hint: find an edge forced from the current (correct) state
+  function hint(t, clues, state, sol) {
+    var sv = new Solver(t, clues);
+    // first: wrong edges
+    for (var e = 0; e < t.E; e++) {
+      if (state[e] === 1 && sol[e] === 0) return { type: 'wrong', edge: e };
+      if (state[e] === 0 && sol[e] === 1) return { type: 'wrong', edge: e };
+    }
+    var s = Int8Array.from(state);
+    var p = s.slice();
+    if (sv.propagate(p)) {
+      var c = pickNew(s, p, t);
+      if (c >= 0) return { type: 'logic', edge: c, val: sol[c] };
+    }
+    // trial
+    for (var e2 = 0; e2 < t.E; e2++) {
+      if (s[e2] !== -1) continue;
+      var a = s.slice(); a[e2] = 1 - sol[e2];
+      if (!sv.propagate(a)) return { type: 'trial', edge: e2, val: sol[e2] };
+    }
+    for (var e3 = 0; e3 < t.E; e3++) if (s[e3] === -1 && sol[e3] === 1) return { type: 'reveal', edge: e3, val: 1 };
+    for (var e4 = 0; e4 < t.E; e4++) if (s[e4] === -1) return { type: 'reveal', edge: e4, val: sol[e4] };
+    return null;
+  }
+  function pickNew(s, p, t) {
+    // prefer line edges adjacent to existing lines
+    var best = -1, bestScore = -1;
+    for (var e = 0; e < t.E; e++) {
+      if (s[e] !== -1 || p[e] === -1) continue;
+      var sc = p[e] === 1 ? 2 : 1;
+      var vs = t.edgeV[e];
+      for (var k = 0; k < 2; k++) { var ve = t.vertEdges[vs[k]]; for (var i = 0; i < ve.length; i++) if (s[ve[i]] === 1) sc += 2; }
+      if (sc > bestScore) { bestScore = sc; best = e; }
+    }
+    return best;
+  }
+
+  return { makeRng: makeRng, hashStr: hashStr, Topo: Topo, Solver: Solver, generate: generate, solvableAt: solvableAt, hint: hint, blank: blank };
+})();
+if (typeof module !== 'undefined') module.exports = SL;
+
+</script>
+<script>
+(function () {
+'use strict';
+var $ = function (id) { return document.getElementById(id); };
+
+// ---------- storage ----------
+var store = {
+  get: function (k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+var prog = store.get('sl_prog', null) || {};
+prog.xp = prog.xp || 0; prog.stages = prog.stages || {}; prog.clears = prog.clears || 0;
+prog.byLevel = prog.byLevel || [0, 0, 0, 0]; prog.badges = prog.badges || {};
+prog.daily = prog.daily || { last: null, streak: 0, best: 0, done: {} };
+prog.noHintLv = prog.noHintLv || [0, 0, 0, 0];
+function saveProg() { store.set('sl_prog', prog); }
+
+// ---------- definitions ----------
+var LV_NAME = ['かんたん', 'ふつう', 'むずかしい', '鬼'];
+var LV_XP = [10, 25, 50, 100];
+var CHAPTERS = [
+  { name: '第1章 はじめの一筆', from: 1, to: 10, R: 5, C: 5, lv: 0, par: 90 },
+  { name: '第2章 輪をひろげて', from: 11, to: 25, R: 6, C: 6, lv: 0, par: 150 },
+  { name: '第3章 仮定と矛盾', from: 26, to: 40, R: 7, C: 7, lv: 1, par: 300 },
+  { name: '第4章 見えない道', from: 41, to: 55, R: 8, C: 8, lv: 1, par: 420 },
+  { name: '第5章 論理の森', from: 56, to: 75, R: 8, C: 8, lv: 2, par: 540 },
+  { name: '第6章 大きな輪', from: 76, to: 95, R: 10, C: 10, lv: 2, par: 900 },
+  { name: '第7章 鬼の門', from: 96, to: 110, R: 10, C: 10, lv: 3, par: 1200 },
+  { name: '終章 果てなき輪', from: 111, to: 150, R: 12, C: 12, lv: 3, par: 1800 }
+];
+var MAX_STAGE = 150;
+function stageCfg(n) {
+  for (var i = 0; i < CHAPTERS.length; i++) if (n <= CHAPTERS[i].to) return CHAPTERS[i];
+  return CHAPTERS[CHAPTERS.length - 1];
+}
+var FREE = [
+  { R: 6, C: 6, lv: 0, par: 150 }, { R: 7, C: 7, lv: 1, par: 300 },
+  { R: 8, C: 8, lv: 2, par: 540 }, { R: 10, C: 10, lv: 3, par: 1200 }
+];
+// daily by weekday: Sun..Sat
+var DAILY = [
+  { R: 10, C: 10, lv: 3, par: 1200 }, { R: 6, C: 6, lv: 0, par: 150 }, { R: 7, C: 7, lv: 1, par: 300 },
+  { R: 8, C: 8, lv: 1, par: 420 }, { R: 8, C: 8, lv: 2, par: 540 }, { R: 10, C: 10, lv: 2, par: 900 },
+  { R: 10, C: 10, lv: 3, par: 1200 }
+];
+var RANKS = [
+  [0, '見習い'], [50, '線引き初心者'], [150, '一筆書きびと'], [350, 'ループ職人'],
+  [700, '論理の探究者'], [1200, '線の達人'], [2000, '輪の名人'], [3200, '鬼の解き手'],
+  [5000, '果てなき輪の賢者'], [8000, 'ループマスター']
+];
+var BADGES = [
+  { id: 'first', ic: '🌱', name: 'はじめての輪', test: function () { return prog.clears >= 1; } },
+  { id: 'c10', ic: '🔟', name: '10問クリア', test: function () { return prog.clears >= 10; } },
+  { id: 'c50', ic: '🏅', name: '50問クリア', test: function () { return prog.clears >= 50; } },
+  { id: 'c100', ic: '🏆', name: '100問クリア', test: function () { return prog.clears >= 100; } },
+  { id: 'ch1', ic: '📗', name: '第1章 制覇', test: function () { return chapterDone(0); } },
+  { id: 'ch3', ic: '📘', name: '第3章 制覇', test: function () { return chapterDone(2); } },
+  { id: 'ch5', ic: '📙', name: '第5章 制覇', test: function () { return chapterDone(4); } },
+  { id: 'ch7', ic: '👹', name: '鬼の門 突破', test: function () { return chapterDone(6); } },
+  { id: 'star30', ic: '⭐', name: '★を30個', test: function () { return totalStars() >= 30; } },
+  { id: 'star100', ic: '🌟', name: '★を100個', test: function () { return totalStars() >= 100; } },
+  { id: 'nhHard', ic: '🧠', name: 'ヒントなしで むずかしい', test: function () { return prog.noHintLv[2] >= 1; } },
+  { id: 'nhOni', ic: '🔥', name: 'ヒントなしで 鬼', test: function () { return prog.noHintLv[3] >= 1; } },
+  { id: 'speed', ic: '⚡', name: '8×8以上を3分以内', test: function () { return !!prog.speed; } },
+  { id: 'd3', ic: '📅', name: 'デイリー3日連続', test: function () { return prog.daily.best >= 3; } },
+  { id: 'd7', ic: '🗓️', name: 'デイリー7日連続', test: function () { return prog.daily.best >= 7; } },
+  { id: 'd30', ic: '👑', name: 'デイリー30日連続', test: function () { return prog.daily.best >= 30; } }
+];
+function chapterDone(i) { var ch = CHAPTERS[i]; for (var n = ch.from; n <= ch.to; n++) if (!prog.stages[n]) return false; return true; }
+function totalStars() { var s = 0; for (var k in prog.stages) s += prog.stages[k].stars || 0; return s; }
+function rankInfo(xp) {
+  var i = 0; while (i + 1 < RANKS.length && xp >= RANKS[i + 1][0]) i++;
+  var cur = RANKS[i][0], nxt = i + 1 < RANKS.length ? RANKS[i + 1][0] : null;
+  return { lv: i + 1, name: RANKS[i][1], cur: cur, next: nxt, pct: nxt ? (xp - cur) / (nxt - cur) * 100 : 100 };
+}
+function nextStage() { var n = 1; while (n < MAX_STAGE && prog.stages[n]) n++; return n; }
+function fmt(sec) { sec = Math.floor(sec); var m = Math.floor(sec / 60), s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
+function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function dayDiff(a, b) {
+  var pa = a.split('-').map(Number), pb = b.split('-').map(Number);
+  return Math.round((new Date(pb[0], pb[1] - 1, pb[2]) - new Date(pa[0], pa[1] - 1, pa[2])) / 86400000);
+}
+
+// ---------- theme ----------
+var theme = store.get('sl_theme', 'auto');
+function applyTheme() {
+  if (theme === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', theme);
+  $('btnTheme').textContent = 'テーマ: ' + ({ auto: '自動', light: 'ライト', dark: 'ダーク' })[theme];
+  if (G) draw();
+}
+$('btnTheme').onclick = function () { theme = theme === 'auto' ? 'light' : theme === 'light' ? 'dark' : 'auto'; store.set('sl_theme', theme); applyTheme(); };
+
+// ---------- generator (worker) ----------
+var worker = null, reqId = 0, pending = {};
+try {
+  var src = $('engine').textContent + '\nonmessage=function(e){var d=e.data;var p=SL.generate(d.R,d.C,d.lv,d.seed);postMessage({id:d.id,p:p});};';
+  worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+  worker.onmessage = function (e) { var cb = pending[e.data.id]; delete pending[e.data.id]; if (cb) cb(e.data.p); };
+  worker.onerror = function () { worker = null; };
+} catch (e) { worker = null; }
+var genCache = {};
+function getPuzzle(key, R, C, lv, seed) {
+  var ck = 'sl_pz_' + key;
+  var cached = store.get(ck, null);
+  if (cached) return Promise.resolve(cached);
+  if (genCache[key]) return genCache[key];
+  var pr = new Promise(function (res) {
+    var done = function (p) { var q = { R: p.R, C: p.C, lv: p.level, clues: p.clues, sol: p.sol.join('') }; store.set(ck, q); delete genCache[key]; res(q); };
+    if (worker) { var id = ++reqId; pending[id] = done; worker.postMessage({ id: id, R: R, C: C, lv: lv, seed: seed }); }
+    else setTimeout(function () { done(SL.generate(R, C, lv, seed)); }, 30);
+  });
+  genCache[key] = pr;
+  return pr;
+}
+
+// ---------- screens ----------
+function show(id) {
+  ['home', 'stages', 'game'].forEach(function (s) { $(s).classList.toggle('on', s === id); });
+  window.scrollTo(0, 0);
+  if (id === 'home') renderHome();
+  if (id === 'stages') renderStages();
+  if (id !== 'game') stopTimer();
+}
+document.querySelectorAll('[data-home]').forEach(function (b) { b.onclick = function () { if (G) saveGame(); show('home'); }; });
+
+function renderHome() {
+  var ri = rankInfo(prog.xp);
+  $('rankLv').textContent = ri.lv; $('rankName').textContent = ri.name;
+  $('rankXp').textContent = ri.next ? (prog.xp + ' / ' + ri.next + ' XP　次の称号まで ' + (ri.next - prog.xp)) : (prog.xp + ' XP　最高位');
+  setTimeout(function () { $('rankBar').style.width = ri.pct + '%'; }, 50);
+  var n = nextStage(), cfg = stageCfg(n);
+  $('btnNext').firstChild.textContent = prog.stages[n] ? 'ステージ ' + n + ' をもう一度' : 'ステージ ' + n + ' に挑戦';
+  $('btnNextSub').textContent = cfg.R + '×' + cfg.C + ' ' + LV_NAME[cfg.lv] + '　' + cfg.name;
+  var last = store.get('sl_last', null);
+  if (last && store.get('sl_save_' + last.key, null)) {
+    $('btnResume').style.display = '';
+    $('btnResumeSub').textContent = last.title + '　' + fmt(store.get('sl_save_' + last.key).elapsed || 0);
+  } else $('btnResume').style.display = 'none';
+  var wd = new Date().getDay(), dc = DAILY[wd], td = today();
+  var doneToday = !!prog.daily.done[td];
+  $('dailySub').textContent = (doneToday ? 'クリア済み ✓　' : '') + dc.R + '×' + dc.C + ' ' + LV_NAME[dc.lv] + '　毎日ちがう問題';
+  var streak = prog.daily.last && dayDiff(prog.daily.last, td) <= 1 ? prog.daily.streak : 0;
+  $('streakTxt').textContent = streak ? '🔥' + streak + '日連続' : '';
+  var cleared = Object.keys(prog.stages).length;
+  $('stageSub').textContent = cleared + ' / ' + MAX_STAGE + ' クリア　★' + totalStars() + ' / ' + MAX_STAGE * 3;
+  $('stClears').textContent = prog.clears; $('stStars').textContent = totalStars(); $('stBestStreak').textContent = prog.daily.best;
+  var got = 0;
+  $('badges').innerHTML = BADGES.map(function (b) { var g = !!prog.badges[b.id]; if (g) got++; return '<div class="badge' + (g ? ' got' : '') + '"><span class="ic">' + b.ic + '</span>' + b.name + '</div>'; }).join('');
+  $('badgeCount').textContent = got + ' / ' + BADGES.length;
+}
+
+function renderStages() {
+  var nx = nextStage(), html = '';
+  CHAPTERS.forEach(function (ch) {
+    var stars = 0, cnt = 0;
+    for (var n = ch.from; n <= ch.to; n++) if (prog.stages[n]) { stars += prog.stages[n].stars; cnt++; }
+    html += '<div class="chapter"><h3>' + ch.name + '<span>' + ch.R + '×' + ch.C + ' ' + LV_NAME[ch.lv] + '　★' + stars + '/' + (ch.to - ch.from + 1) * 3 + '</span></h3><div class="stage-grid">';
+    for (var m = ch.from; m <= ch.to; m++) {
+      var st = prog.stages[m], locked = m > nx;
+      var s = st ? '★★★'.slice(0, st.stars) + '<span style="opacity:.25">' + '★★★'.slice(0, 3 - st.stars) + '</span>' : '';
+      html += '<button class="stage' + (locked ? ' locked' : '') + (m === nx ? ' next' : '') + '" data-st="' + m + '"' + (locked ? ' disabled' : '') + '>' + (locked ? '🔒' : m) + '<span class="st">' + s + '</span></button>';
+    }
+    html += '</div></div>';
+  });
+  $('chapters').innerHTML = html;
+  $('chapters').querySelectorAll('[data-st]').forEach(function (b) { b.onclick = function () { startStage(+b.dataset.st); }; });
+  var el = $('chapters').querySelector('.next');
+  if (el) setTimeout(function () { el.scrollIntoView({ block: 'center' }); }, 30);
+}
+
+$('btnNext').onclick = function () { startStage(nextStage()); };
+$('btnStages').onclick = function () { show('stages'); };
+$('btnDaily').onclick = function () { startDaily(); };
+$('btnResume').onclick = function () { var l = store.get('sl_last', null); if (l) startGame(l); };
+document.querySelectorAll('[data-free]').forEach(function (b) {
+  b.onclick = function () {
+    var lv = +b.dataset.free, f = FREE[lv];
+    var cur = store.get('sl_free_' + lv, null);
+    var seed = cur || Math.floor(Math.random() * 1e9);
+    store.set('sl_free_' + lv, seed);
+    startGame({ kind: 'free', key: 'f' + lv + '_' + seed, title: 'フリー ' + LV_NAME[lv], R: f.R, C: f.C, lv: lv, par: f.par, seed: seed, freeLv: lv });
+  };
+});
+$('btnRules').onclick = $('btnHelp').onclick = function () { $('rulesModal').classList.add('on'); };
+$('rulesClose').onclick = function () { $('rulesModal').classList.remove('on'); store.set('sl_seenRules', 1); };
+
+function startStage(n) {
+  var c = stageCfg(n);
+  startGame({ kind: 'stage', key: 'st' + n, n: n, title: 'ステージ ' + n, R: c.R, C: c.C, lv: c.lv, par: c.par, seed: SL.hashStr('stage-' + n) });
+}
+function startDaily() {
+  var td = today(), c = DAILY[new Date().getDay()];
+  startGame({ kind: 'daily', key: 'd' + td, date: td, title: '今日の一問', R: c.R, C: c.C, lv: c.lv, par: c.par, seed: SL.hashStr('daily-' + td) });
+}
+
+// ---------- game state ----------
+var G = null, timerId = null;
+var canvas = $('board'), ctx = canvas.getContext('2d');
+var geom = { cell: 40, ox: 20, oy: 20, w: 0, h: 0 };
+
+function startGame(meta) {
+  show('game');
+  G = null;
+  $('gTitle').textContent = meta.title;
+  $('gInfo').textContent = meta.R + '×' + meta.C + ' ' + LV_NAME[meta.lv];
+  $('gPar').textContent = '★3 目標 ' + fmt(meta.par);
+  $('gTimer').textContent = '0:00';
+  setMsg('');
+  sizeBoard(meta.R, meta.C);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  $('spinner').classList.add('on');
+  $('spinTxt').textContent = meta.lv >= 3 ? '鬼の問題をつくっています…' : '問題をつくっています…';
+  getPuzzle(meta.key, meta.R, meta.C, meta.lv, meta.seed).then(function (p) {
+    $('spinner').classList.remove('on');
+    var t = SL.Topo(p.R, p.C);
+    var sol = new Int8Array(t.E); for (var i = 0; i < t.E; i++) sol[i] = +p.sol[i];
+    var save = store.get('sl_save_' + meta.key, null);
+    var state = new Int8Array(t.E); state.fill(-1);
+    if (save && save.state && save.state.length === t.E) for (var j = 0; j < t.E; j++) state[j] = +save.state[j] - 1;
+    G = {
+      meta: meta, t: t, clues: Int8Array.from(p.clues), sol: sol, state: state,
+      undo: [], redo: [], hints: save ? save.hints || 0 : 0, elapsed: save ? save.elapsed || 0 : 0,
+      done: false, cross: false, hl: [], solver: new SL.Solver(t, Int8Array.from(p.clues)), anim: 0
+    };
+    if (meta.kind !== 'free' || true) store.set('sl_last', meta);
+    $('tCross').classList.remove('on');
+    updateTools();
+    draw();
+    startTimer();
+    setMsg(save ? 'つづきから再開しました' : (meta.lv >= 1 && !store.get('sl_tip' + meta.lv, 0) ? tipFor(meta.lv) : 'タップで線 → × → 消す。なぞると線が引けます'));
+    if (meta.lv >= 1) store.set('sl_tip' + meta.lv, 1);
+    if (!store.get('sl_seenRules', 0)) $('rulesModal').classList.add('on');
+    // prefetch next stage
+    if (meta.kind === 'stage' && meta.n < MAX_STAGE) { var nn = meta.n + 1, nc = stageCfg(nn); setTimeout(function () { getPuzzle('st' + nn, nc.R, nc.C, nc.lv, SL.hashStr('stage-' + nn)); }, 800); }
+  });
+}
+function tipFor(lv) {
+  return ['', 'コツ：「ここに線を引いたら矛盾する？」と仮定してみよう', 'コツ：線を引いた場合と引かない場合、両方で共通する結論を探そう', '鬼：数手先まで読む必要があります。×をうまく使おう'][lv];
+}
+function saveGame() {
+  if (!G || G.done) return;
+  var s = ''; for (var i = 0; i < G.state.length; i++) s += (G.state[i] + 1);
+  store.set('sl_save_' + G.meta.key, { state: s, hints: G.hints, elapsed: G.elapsed });
+}
+function clearSave(key) { store.del('sl_save_' + key); var l = store.get('sl_last', null); if (l && l.key === key) store.del('sl_last'); }
+
+function startTimer() {
+  stopTimer();
+  var last = performance.now();
+  timerId = setInterval(function () {
+    var now = performance.now();
+    if (G && !G.done && !document.hidden) { G.elapsed += (now - last) / 1000; $('gTimer').textContent = fmt(G.elapsed); }
+    last = now;
+  }, 250);
+}
+function stopTimer() { if (timerId) clearInterval(timerId); timerId = null; }
+document.addEventListener('visibilitychange', function () { if (document.hidden) saveGame(); });
+window.addEventListener('pagehide', saveGame);
+
+function setMsg(text, cls) { var m = $('msg'); m.textContent = text; m.className = cls || ''; }
+var toastT = 0;
+function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { el.classList.remove('on'); }, 1800); }
+
+// ---------- geometry & drawing ----------
+function sizeBoard(R, C) {
+  var avail = $('boardWrap').clientWidth - 8;
+  if (avail < 100) avail = Math.min(window.innerWidth, 560) - 40;
+  var maxH = window.innerHeight - 290;
+  var cell = Math.floor(Math.min(avail / (C + 0.8), Math.max(maxH, 260) / (R + 0.8)));
+  cell = Math.max(cell, 22);
+  geom.cell = cell; geom.ox = cell * 0.4; geom.oy = cell * 0.4;
+  geom.w = Math.round(cell * (C + 0.8)); geom.h = Math.round(cell * (R + 0.8));
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width = geom.w * dpr; canvas.height = geom.h * dpr;
+  canvas.style.width = geom.w + 'px'; canvas.style.height = geom.h + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', function () { if (G) { sizeBoard(G.t.R, G.t.C); draw(); } });
+function px(c) { return geom.ox + c * geom.cell; }
+function py(r) { return geom.oy + r * geom.cell; }
+function edgeEnds(e) {
+  var t = G.t;
+  if (e < t.H) { var r = Math.floor(e / t.C), c = e % t.C; return [px(c), py(r), px(c + 1), py(r)]; }
+  var k = e - t.H, r2 = Math.floor(k / (t.C + 1)), c2 = k % (t.C + 1);
+  return [px(c2), py(r2), px(c2), py(r2 + 1)];
+}
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+function draw() {
+  if (!G) return;
+  var t = G.t, cell = geom.cell, s = G.state;
+  var col = { ink: css('--ink'), muted: css('--muted'), line: css('--line'), bad: css('--bad'), dot: css('--dot'), good: css('--good'), accent: css('--accent'), gold: css('--gold'), panel2: css('--panel2') };
+  ctx.clearRect(0, 0, geom.w, geom.h);
+  var now = performance.now();
+  // highlights
+  G.hl = G.hl.filter(function (h) { return h.until > now; });
+  G.hl.forEach(function (h) {
+    var p = edgeEnds(h.edge), a = Math.min(1, (h.until - now) / 600);
+    ctx.save(); ctx.globalAlpha = 0.35 * a + 0.15 * Math.sin(now / 120) * a;
+    ctx.strokeStyle = h.color; ctx.lineWidth = cell * 0.45; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(p[2], p[3]); ctx.stroke(); ctx.restore();
+  });
+  // clues
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '700 ' + Math.round(cell * 0.56) + 'px -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif';
+  for (var i = 0; i < t.NC; i++) {
+    var n = G.clues[i]; if (n < 0) continue;
+    var ce = t.cellEdges[i], ln = 0, cr = 0;
+    for (var j = 0; j < 4; j++) { if (s[ce[j]] === 1) ln++; else if (s[ce[j]] === 0) cr++; }
+    var r = Math.floor(i / t.C), c = i % t.C;
+    ctx.fillStyle = G.done ? col.good : (ln > n || 4 - cr < n) ? col.bad : (ln === n && ln + cr === 4 ? col.muted : col.ink);
+    ctx.fillText(String(n), px(c) + cell / 2, py(r) + cell / 2 + cell * 0.03);
+  }
+  // crosses
+  ctx.strokeStyle = col.muted; ctx.lineWidth = Math.max(1.5, cell * 0.05); ctx.lineCap = 'round';
+  var xs = cell * 0.1;
+  for (var e = 0; e < t.E; e++) {
+    if (s[e] !== 0) continue;
+    var q = edgeEnds(e), mx = (q[0] + q[2]) / 2, my = (q[1] + q[3]) / 2;
+    ctx.beginPath(); ctx.moveTo(mx - xs, my - xs); ctx.lineTo(mx + xs, my + xs); ctx.moveTo(mx + xs, my - xs); ctx.lineTo(mx - xs, my + xs); ctx.stroke();
+  }
+  // lines
+  var lineCol = col.line;
+  if (G.done) {
+    var g = ctx.createLinearGradient(0, 0, geom.w, geom.h);
+    var ph = (now / 1500) % 1;
+    g.addColorStop(0, col.line); g.addColorStop((0.5 + ph) % 1, col.accent); g.addColorStop(1, col.gold);
+    lineCol = g;
+  }
+  ctx.strokeStyle = lineCol; ctx.lineWidth = Math.max(3, cell * 0.12); ctx.lineCap = 'round';
+  ctx.beginPath();
+  for (var e2 = 0; e2 < t.E; e2++) {
+    if (s[e2] !== 1) continue;
+    var q2 = edgeEnds(e2); ctx.moveTo(q2[0], q2[1]); ctx.lineTo(q2[2], q2[3]);
+  }
+  ctx.stroke();
+  // dots
+  var dr = Math.max(2, cell * 0.065);
+  for (var rr = 0; rr <= t.R; rr++) for (var cc = 0; cc <= t.C; cc++) {
+    var ve = t.vertEdges[t.ptId(rr, cc)], d = 0;
+    for (var k = 0; k < ve.length; k++) if (s[ve[k]] === 1) d++;
+    ctx.fillStyle = d > 2 ? col.bad : col.dot;
+    ctx.beginPath(); ctx.arc(px(cc), py(rr), d > 2 ? dr * 1.8 : dr, 0, Math.PI * 2); ctx.fill();
+  }
+  if (G.hl.length || G.done) { if (!G.anim) G.anim = requestAnimationFrame(function () { G && (G.anim = 0); draw(); }); }
+}
+
+// ---------- input ----------
+var ptr = null;
+function localXY(ev) { var r = canvas.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; }
+function nearestVertex(x, y) {
+  var c = Math.round((x - geom.ox) / geom.cell), r = Math.round((y - geom.oy) / geom.cell);
+  c = Math.max(0, Math.min(G.t.C, c)); r = Math.max(0, Math.min(G.t.R, r));
+  return { r: r, c: c, d: Math.hypot(x - px(c), y - py(r)) };
+}
+function nearestEdge(x, y) {
+  var t = G.t, best = -1, bd = 1e9;
+  var fc = (x - geom.ox) / geom.cell, fr = (y - geom.oy) / geom.cell;
+  var cands = [];
+  var r0 = Math.floor(fr), c0 = Math.floor(fc);
+  for (var dr = -1; dr <= 2; dr++) for (var dc = -1; dc <= 2; dc++) {
+    var r = r0 + dr, c = c0 + dc;
+    if (r >= 0 && r <= t.R && c >= 0 && c < t.C) cands.push(t.hId(r, c));
+    if (r >= 0 && r < t.R && c >= 0 && c <= t.C) cands.push(t.vId(r, c));
+  }
+  cands.forEach(function (e) {
+    var p = edgeEnds(e), mx = (p[0] + p[2]) / 2, my = (p[1] + p[3]) / 2;
+    var d = Math.hypot(x - mx, y - my);
+    if (d < bd) { bd = d; best = e; }
+  });
+  return bd < geom.cell * 0.62 ? best : -1;
+}
+function edgeBetween(a, b) {
+  var t = G.t;
+  if (a.r === b.r && Math.abs(a.c - b.c) === 1) return t.hId(a.r, Math.min(a.c, b.c));
+  if (a.c === b.c && Math.abs(a.r - b.r) === 1) return t.vId(Math.min(a.r, b.r), a.c);
+  return -1;
+}
+function setEdge(e, v, act) {
+  if (G.state[e] === v) return;
+  act.push([e, G.state[e], v]);
+  G.state[e] = v;
+}
+canvas.addEventListener('pointerdown', function (ev) {
+  if (!G || G.done) return;
+  ev.preventDefault();
+  canvas.setPointerCapture(ev.pointerId);
+  var xy = localXY(ev);
+  ptr = { id: ev.pointerId, x0: xy[0], y0: xy[1], drag: false, v: nearestVertex(xy[0], xy[1]), mode: null, act: [] };
+});
+canvas.addEventListener('pointermove', function (ev) {
+  if (!ptr || ev.pointerId !== ptr.id || !G) return;
+  var xy = localXY(ev);
+  if (!ptr.drag) {
+    if (Math.hypot(xy[0] - ptr.x0, xy[1] - ptr.y0) < geom.cell * 0.35) return;
+    if (ptr.v.d > geom.cell * 0.45) { // started mid-edge: snap start to the closer endpoint
+      ptr.v = nearestVertex(ptr.x0, ptr.y0);
+    }
+    ptr.drag = true;
+  }
+  var nv = nearestVertex(xy[0], xy[1]);
+  if (nv.d > geom.cell * 0.42) return;
+  if (nv.r === ptr.v.r && nv.c === ptr.v.c) return;
+  // step along straight path
+  var steps = 0;
+  while ((nv.r !== ptr.v.r || nv.c !== ptr.v.c) && steps++ < 30) {
+    var nx = { r: ptr.v.r, c: ptr.v.c };
+    if (nv.r !== ptr.v.r && nv.c !== ptr.v.c) {
+      if (Math.abs(nv.r - ptr.v.r) >= Math.abs(nv.c - ptr.v.c)) nx.r += Math.sign(nv.r - ptr.v.r); else nx.c += Math.sign(nv.c - ptr.v.c);
+    } else if (nv.r !== ptr.v.r) nx.r += Math.sign(nv.r - ptr.v.r); else nx.c += Math.sign(nv.c - ptr.v.c);
+    var e = edgeBetween(ptr.v, nx);
+    if (e >= 0) {
+      if (!ptr.mode) ptr.mode = G.cross ? (G.state[e] === 0 ? 'unx' : 'x') : (G.state[e] === 1 ? 'erase' : 'draw');
+      if (ptr.mode === 'draw') setEdge(e, 1, ptr.act);
+      else if (ptr.mode === 'erase') { if (G.state[e] === 1) setEdge(e, -1, ptr.act); }
+      else if (ptr.mode === 'x') { if (G.state[e] !== 1) setEdge(e, 0, ptr.act); }
+      else if (ptr.mode === 'unx') { if (G.state[e] === 0) setEdge(e, -1, ptr.act); }
+    }
+    ptr.v = nx;
+  }
+  draw();
+});
+function endPtr(ev) {
+  if (!ptr || ev.pointerId !== ptr.id || !G) return;
+  var p = ptr; ptr = null;
+  if (!p.drag) {
+    var e = nearestEdge(p.x0, p.y0);
+    if (e >= 0) {
+      var cur = G.state[e], nv;
+      if (G.cross) nv = cur === 0 ? -1 : 0;
+      else nv = cur === -1 ? 1 : cur === 1 ? 0 : -1;
+      setEdge(e, nv, p.act);
+    }
+  }
+  if (p.act.length) commit(p.act);
+}
+canvas.addEventListener('pointerup', endPtr);
+canvas.addEventListener('pointercancel', endPtr);
+
+function commit(act) {
+  G.undo.push(act); G.redo = [];
+  if (G.undo.length > 500) G.undo.shift();
+  afterChange();
+}
+function afterChange() {
+  updateTools(); draw(); saveGame();
+  if (isComplete()) win();
+}
+function isComplete() {
+  for (var e = 0; e < G.t.E; e++) if ((G.state[e] === 1) !== (G.sol[e] === 1)) return false;
+  return true;
+}
+function updateTools() {
+  $('tUndo').disabled = !G || !G.undo.length;
+  $('tRedo').disabled = !G || !G.redo.length;
+  $('tHint').lastChild.textContent = G && G.hints ? 'ヒント(' + G.hints + ')' : 'ヒント';
+}
+$('tUndo').onclick = function () {
+  if (!G || G.done || !G.undo.length) return;
+  var a = G.undo.pop();
+  for (var i = a.length - 1; i >= 0; i--) G.state[a[i][0]] = a[i][1];
+  G.redo.push(a); afterChange();
+};
+$('tRedo').onclick = function () {
+  if (!G || G.done || !G.redo.length) return;
+  var a = G.redo.pop();
+  for (var i = 0; i < a.length; i++) G.state[a[i][0]] = a[i][2];
+  G.undo.push(a); afterChange();
+};
+$('tCross').onclick = function () {
+  if (!G) return; G.cross = !G.cross; this.classList.toggle('on', G.cross);
+  setMsg(G.cross ? '×モード：タップ・なぞりで×をつけます' : '線モード：タップで線 → × → 消す');
+};
+$('tReset').onclick = function () {
+  if (!G || G.done) return;
+  if (!confirm('盤面を最初からやり直しますか？（タイムは続きます）')) return;
+  var act = [];
+  for (var e = 0; e < G.t.E; e++) if (G.state[e] !== -1) setEdge(e, -1, act);
+  if (act.length) commit(act);
+};
+$('tCheck').onclick = function () {
+  if (!G || G.done) return;
+  var wrong = [];
+  for (var e = 0; e < G.t.E; e++) if (G.state[e] !== -1 && G.state[e] !== G.sol[e]) wrong.push(e);
+  if (!wrong.length) { setMsg('ここまでミスはありません 👍', 'ok'); return; }
+  setMsg('まちがいが ' + wrong.length + ' か所あります（赤く光った所）', 'warn');
+  var until = performance.now() + 2200;
+  wrong.forEach(function (e) { G.hl.push({ edge: e, until: until, color: css('--bad') }); });
+  draw();
+};
+$('tHint').onclick = function () {
+  if (!G || G.done) return;
+  var h = SL.hint(G.t, G.clues, G.state, G.sol);
+  if (!h) return;
+  G.hints++;
+  var until = performance.now() + 2600, act = [];
+  if (h.type === 'wrong') {
+    setEdge(h.edge, -1, act);
+    setMsg('ここがまちがっていたので消しました', 'warn');
+    G.hl.push({ edge: h.edge, until: until, color: css('--bad') });
+  } else {
+    setEdge(h.edge, h.val, act);
+    setMsg({ logic: '数字と点のルールからここが決まります', trial: '逆を仮定すると矛盾するので、ここが決まります', reveal: 'ここに線が入ります' }[h.type] + (h.val ? '（線）' : '（×）'), 'ok');
+    G.hl.push({ edge: h.edge, until: until, color: css('--gold') });
+  }
+  if (act.length) commit(act); else { updateTools(); draw(); }
+};
+
+// ---------- win ----------
+function win() {
+  G.done = true; stopTimer(); saveGameDone();
+  var m = G.meta, time = Math.floor(G.elapsed);
+  var stars = 1 + (G.hints === 0 ? 1 : 0) + (G.hints === 0 && time <= m.par ? 1 : 0);
+  var oldXp = prog.xp, oldRank = rankInfo(oldXp);
+  var lines = [], gained = 0;
+  // XP
+  var base = LV_XP[m.lv], mult = [0, 1, 1.5, 2][stars];
+  var first = true;
+  if (m.kind === 'stage') {
+    var prev = prog.stages[m.n];
+    first = !prev;
+    if (prev) {
+      // replay: only reward improvement
+      gained = prev.stars < stars ? Math.round(base * (mult - [0, 1, 1.5, 2][prev.stars])) : Math.round(base * 0.2);
+      prog.stages[m.n] = { stars: Math.max(prev.stars, stars), time: Math.min(prev.time || 1e9, time) };
+      if (time < (prev.time || 1e9)) lines.push(['自己ベスト更新！', fmt(time)]);
+    } else {
+      gained = Math.round(base * mult);
+      prog.stages[m.n] = { stars: stars, time: time };
+    }
+  } else gained = Math.round(base * mult);
+  if (m.kind === 'daily' && !prog.daily.done[m.date]) {
+    prog.daily.done[m.date] = 1;
+    var d = prog.daily;
+    if (d.last && dayDiff(d.last, m.date) === 1) d.streak++; else if (d.last !== m.date) d.streak = 1;
+    d.last = m.date; d.best = Math.max(d.best, d.streak);
+    var bonus = 20 + Math.min(d.streak, 10) * 5;
+    gained += bonus;
+    lines.push(['デイリーボーナス（🔥' + d.streak + '日）', '+' + bonus + ' XP']);
+  }
+  if (m.kind === 'free') { store.del('sl_free_' + m.freeLv); }
+  if (first) { prog.clears++; prog.byLevel[m.lv]++; }
+  if (G.hints === 0) prog.noHintLv[m.lv]++;
+  if (time <= 180 && m.R >= 8) prog.speed = 1;
+  prog.xp += gained;
+  var newBadges = [];
+  BADGES.forEach(function (b) { if (!prog.badges[b.id] && b.test()) { prog.badges[b.id] = 1; newBadges.push(b); } });
+  saveProg();
+  clearSave(m.key);
+  updateTools(); draw();
+  // modal
+  setTimeout(function () {
+    confetti(stars);
+    $('cTitle').textContent = stars === 3 ? 'パーフェクト！' : 'クリア！';
+    var si = $('cStars').children;
+    for (var i = 0; i < 3; i++) si[i].className = i < stars ? 'got' : '';
+    var L = [['タイム', fmt(time) + '　（目標 ' + fmt(m.par) + '）'], ['ヒント', G.hints + ' 回']].concat(lines).concat([['獲得XP', '+' + gained]]);
+    $('cLines').innerHTML = L.map(function (l) { return '<div class="res-line"><span>' + l[0] + '</span><b>' + l[1] + '</b></div>'; }).join('');
+    var ri = rankInfo(prog.xp);
+    $('cBar').style.transition = 'none'; $('cBar').style.width = (ri.lv > oldRank.lv ? 0 : oldRank.pct) + '%';
+    setTimeout(function () { $('cBar').style.transition = ''; $('cBar').style.width = ri.pct + '%'; }, 300);
+    $('cRank').textContent = (ri.lv > oldRank.lv ? '🎉 称号アップ！「' + ri.name + '」　' : '称号「' + ri.name + '」　') + (ri.next ? '次まで ' + (ri.next - prog.xp) + ' XP' : '');
+    $('cBadges').innerHTML = newBadges.map(function (b) { return '<div class="newbadge">新しいバッジ！ ' + b.ic + ' <b>' + b.name + '</b></div>'; }).join('');
+    var nb = $('cNext');
+    if (m.kind === 'stage' && m.n < MAX_STAGE) { nb.textContent = 'ステージ ' + (m.n + 1) + ' へ'; nb.onclick = function () { closeClear(); startStage(m.n + 1); }; }
+    else if (m.kind === 'free') { nb.textContent = 'もう一問'; nb.onclick = function () { closeClear(); document.querySelector('[data-free="' + m.freeLv + '"]').click(); }; }
+    else { nb.textContent = 'ステージへ'; nb.onclick = function () { closeClear(); startStage(nextStage()); }; }
+    $('clearModal').classList.add('on');
+  }, 700);
+  setMsg('おみごと！', 'ok');
+}
+function saveGameDone() {}
+function closeClear() { $('clearModal').classList.remove('on'); }
+$('cHome').onclick = function () { closeClear(); show('home'); };
+
+// ---------- confetti ----------
+function confetti(stars) {
+  var cv = $('confetti'), cx = cv.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  var colors = [css('--accent'), css('--gold'), css('--line'), css('--good'), '#ff6fa8'];
+  var parts = [], N = 60 + stars * 50;
+  for (var i = 0; i < N; i++) parts.push({ x: innerWidth / 2 + (Math.random() - .5) * 80, y: innerHeight * 0.4, vx: (Math.random() - .5) * 14, vy: -Math.random() * 14 - 4, s: 4 + Math.random() * 6, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: colors[i % colors.length] });
+  var t0 = performance.now();
+  (function step(now) {
+    var el = now - t0;
+    cx.clearRect(0, 0, innerWidth, innerHeight);
+    parts.forEach(function (p) {
+      p.vy += 0.35; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.globalAlpha = Math.max(0, 1 - el / 2600);
+      cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); cx.restore();
+    });
+    if (el < 2600) requestAnimationFrame(step); else cx.clearRect(0, 0, innerWidth, innerHeight);
+  })(t0);
+}
+
+// ---------- boot ----------
+applyTheme();
+renderHome();
+})();
+</script>
+</body>
+</html>
