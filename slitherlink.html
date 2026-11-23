@@ -100,6 +100,9 @@ h1 { font-size: 26px; margin: 8px 0 4px; letter-spacing: .04em; }
 .res-line { display: flex; justify-content: space-between; padding: 6px 4px; border-bottom: 1px solid var(--panel2); font-size: 14px; }
 .res-line:last-of-type { border-bottom: 0; }
 .newbadge { background: color-mix(in srgb, var(--gold) 25%, var(--panel)); border-radius: 10px; padding: 8px; margin-top: 10px; font-size: 13px; }
+.cloud { font-size: 12px; margin: -8px 0 14px; padding: 8px 12px; border-radius: 10px; background: var(--panel2); color: var(--muted); }
+.cloud.ok { color: var(--good); }
+.cloud.err { color: var(--bad); }
 .rules { text-align: left; font-size: 14px; line-height: 1.7; }
 .rules ol { padding-left: 20px; margin: 8px 0; }
 #spinner { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px; color: var(--muted); font-size: 13px; background: var(--panel); border-radius: 16px; }
@@ -119,6 +122,7 @@ h1 { font-size: 26px; margin: 8px 0 4px; letter-spacing: .04em; }
 <div class="screen on" id="home"><div class="wrap">
   <h1>ループ道場</h1>
   <div class="sub">数字を手がかりに、ひとつながりの輪をつくろう</div>
+  <div class="cloud connecting" id="cloudStat">アカウントに接続中…</div>
 
   <div class="card">
     <div class="rank-top">
@@ -161,6 +165,7 @@ h1 { font-size: 26px; margin: 8px 0 4px; letter-spacing: .04em; }
     <button class="btn" id="btnRules" style="text-align:center">遊び方</button>
     <button class="btn" id="btnTheme" style="text-align:center">テーマ: 自動</button>
   </div>
+  <button class="btn" id="btnBackup" style="text-align:center;margin-top:10px">引き継ぎコード（バックアップ）</button>
 </div></div>
 
 <!-- STAGES -->
@@ -210,6 +215,19 @@ h1 { font-size: 26px; margin: 8px 0 4px; letter-spacing: .04em; }
     <button class="btn" id="cHome" style="text-align:center">ホーム</button>
     <button class="btn primary" id="cNext" style="text-align:center">次へ</button>
   </div>
+</div></div>
+
+<!-- BACKUP MODAL -->
+<div class="modal" id="backupModal"><div class="card rules">
+  <div style="font-size:18px;font-weight:800;text-align:center">引き継ぎコード</div>
+  <p style="font-size:13px;color:var(--muted);margin:8px 0">このコードを保存しておけば、別の端末やブラウザで「復元」に貼り付けて進み具合を戻せます。今ある記録と合体するので、どちらの記録も消えません。</p>
+  <textarea id="bkText" rows="5" style="width:100%;font:12px/1.4 ui-monospace,Menlo,monospace;border-radius:10px;border:1px solid var(--panel2);background:var(--bg);color:var(--ink);padding:8px;word-break:break-all"></textarea>
+  <div id="bkMsg" style="font-size:13px;min-height:20px;margin-top:6px"></div>
+  <div class="row" style="margin-top:8px">
+    <button class="btn" id="bkCopy" style="text-align:center">コピー</button>
+    <button class="btn" id="bkLoad" style="text-align:center">貼り付けて復元</button>
+  </div>
+  <button class="btn primary" id="bkClose" style="text-align:center;margin-top:10px">閉じる</button>
 </div></div>
 
 <!-- RULES MODAL -->
@@ -648,16 +666,126 @@ if (typeof module !== 'undefined') module.exports = SL;
 var $ = function (id) { return document.getElementById(id); };
 
 // ---------- storage ----------
+var mem = {};
+var SYNC_RE = /^sl_(prog|last|save_|free_|theme|seenRules|tip)/;
 var store = {
-  get: function (k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
-  set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
-  del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+  raw: function (k) { if (k in mem) return mem[k]; try { return localStorage.getItem(k); } catch (e) { return null; } },
+  get: function (k, d) { var v = store.raw(k); if (!v) return d; try { return JSON.parse(v); } catch (e) { return d; } },
+  set: function (k, v) { var j = JSON.stringify(v); mem[k] = j; try { localStorage.setItem(k, j); } catch (e) {} if (SYNC_RE.test(k)) cloudDirty(); },
+  del: function (k) { mem[k] = null; try { localStorage.removeItem(k); } catch (e) {} if (SYNC_RE.test(k)) cloudDirty(); },
+  keys: function () {
+    var ks = {}, k;
+    for (k in mem) ks[k] = 1;
+    try { for (var i = 0; i < localStorage.length; i++) ks[localStorage.key(i)] = 1; } catch (e) {}
+    return Object.keys(ks);
+  }
 };
+// collect everything worth keeping (progress, in-progress boards, settings)
+function snapshotSync() {
+  var o = {};
+  store.keys().forEach(function (k) { if (SYNC_RE.test(k)) { var v = store.raw(k); if (v) o[k] = v; } });
+  return o;
+}
+// merge a saved set of keys into this device (never loses progress on either side)
+function mergeIn(keys) {
+  Object.keys(keys).forEach(function (k) {
+    if (!SYNC_RE.test(k) || typeof keys[k] !== 'string') return;
+    var theirs; try { theirs = JSON.parse(keys[k]); } catch (e) { return; }
+    if (k === 'sl_prog') { store.set(k, mergeProg(store.get(k, null), theirs)); return; }
+    if (store.raw(k) == null) store.set(k, theirs);
+    else if (/^sl_save_/.test(k)) { var mine = store.get(k, {}); if ((theirs.elapsed || 0) > (mine.elapsed || 0)) store.set(k, theirs); }
+  });
+}
+function mergeProg(a, b) {
+  if (!a) return b; if (!b) return a;
+  var r = JSON.parse(JSON.stringify(a));
+  var mx = function (x, y) { return Math.max(x || 0, y || 0); };
+  r.xp = mx(a.xp, b.xp); r.clears = mx(a.clears, b.clears); r.speed = a.speed || b.speed;
+  r.stages = r.stages || {};
+  Object.keys(b.stages || {}).forEach(function (n) {
+    var x = r.stages[n], y = b.stages[n];
+    r.stages[n] = !x ? y : { stars: mx(x.stars, y.stars), time: Math.min(x.time || 1e9, y.time || 1e9) };
+  });
+  ['byLevel', 'noHintLv'].forEach(function (f) { var u = r[f] || [0, 0, 0, 0], v = b[f] || []; r[f] = u.map(function (q, i) { return mx(q, v[i]); }); });
+  r.badges = Object.assign({}, b.badges || {}, r.badges || {});
+  var da = a.daily || {}, db = b.daily || {};
+  var d = { done: Object.assign({}, db.done || {}, da.done || {}), best: mx(da.best, db.best) };
+  var useB = db.last && (!da.last || dayDiff(da.last, db.last) > 0 || (da.last === db.last && (db.streak || 0) > (da.streak || 0)));
+  d.last = useB ? db.last : (da.last || null); d.streak = useB ? (db.streak || 0) : (da.streak || 0);
+  r.daily = d;
+  return r;
+}
+
+// ---------- cloud save (Claude account) ----------
+var cloud = { ref: null, timer: 0, writing: false, dirty: false, state: 'connecting' };
+function cloudDirty() {
+  if (!cloud.ref) return;
+  cloud.dirty = true; clearTimeout(cloud.timer); cloud.timer = setTimeout(flushCloud, 1500);
+}
+function flushCloud() {
+  if (!cloud.ref || !cloud.dirty) return;
+  if (cloud.writing) { cloud.timer = setTimeout(flushCloud, 1000); return; }
+  cloud.dirty = false; cloud.writing = true;
+  cloud.ref.set({ v: 1, keys: snapshotSync(), updatedAt: Date.now() }).then(function () {
+    cloud.writing = false; setCloud('ok');
+    if (cloud.dirty) cloud.timer = setTimeout(flushCloud, 1000);
+  }, function (e) {
+    cloud.writing = false;
+    if (e && e.code === 'invalid_argument') { cloud.ref = null; setCloud('readonly'); }
+    else { setCloud('err'); cloud.dirty = true; cloud.timer = setTimeout(flushCloud, 8000); }
+  });
+}
+function setCloud(st) {
+  cloud.state = st;
+  var el = document.getElementById('cloudStat'); if (!el) return;
+  el.className = 'cloud ' + st;
+  el.textContent = ({
+    connecting: 'アカウントに接続中…',
+    ok: 'Claudeアカウントに自動保存中。どの端末でも続きから遊べます',
+    err: 'クラウド保存に失敗しました。この端末には保存済みで、あとで自動で再送します',
+    readonly: '閲覧のみの共有なので、記録はこの端末にだけ保存されます',
+    none: 'この端末にだけ保存しています。引き継ぎコードでバックアップできます'
+  })[st];
+}
+function initCloud() {
+  var c = window.claude;
+  if (!c || !c.use) { setCloud('none'); return; }
+  Promise.all([c.use('db'), c.use('user')]).then(function (r) {
+    var db = r[0], user = r[1];
+    if (!db || !user) { setCloud('none'); return; }
+    return user.id().then(function (id) {
+      if (!id) { setCloud('none'); return; }
+      var ref = db.doc('data/users/' + id + '/progress');
+      var to = new Promise(function (_, rej) { setTimeout(function () { rej({ code: 'timeout' }); }, 10000); });
+      return Promise.race([ref.get(), to]).then(function (snap) {
+        cloud.ref = ref;
+        if (snap.exists) { var d = snap.data(); if (d && d.keys) mergeIn(d.keys); }
+        reloadProg();
+        cloud.dirty = true; flushCloud();
+      });
+    });
+  }).catch(function () { setCloud('err'); });
+}
+function reloadProg() {
+  prog = normProg(store.get('sl_prog', null));
+  theme = store.get('sl_theme', 'auto'); applyTheme();
+  if ($('home').classList.contains('on')) renderHome();
+  if ($('stages').classList.contains('on')) renderStages();
+}
+
 var prog = store.get('sl_prog', null) || {};
 prog.xp = prog.xp || 0; prog.stages = prog.stages || {}; prog.clears = prog.clears || 0;
 prog.byLevel = prog.byLevel || [0, 0, 0, 0]; prog.badges = prog.badges || {};
 prog.daily = prog.daily || { last: null, streak: 0, best: 0, done: {} };
 prog.noHintLv = prog.noHintLv || [0, 0, 0, 0];
+function normProg(p) {
+  p = p || {};
+  p.xp = p.xp || 0; p.stages = p.stages || {}; p.clears = p.clears || 0;
+  p.byLevel = p.byLevel || [0, 0, 0, 0]; p.badges = p.badges || {};
+  p.daily = p.daily || { last: null, streak: 0, best: 0, done: {} }; p.daily.done = p.daily.done || {};
+  p.noHintLv = p.noHintLv || [0, 0, 0, 0];
+  return p;
+}
 function saveProg() { store.set('sl_prog', prog); }
 
 // ---------- definitions ----------
@@ -1119,7 +1247,13 @@ $('tCross').onclick = function () {
 };
 $('tReset').onclick = function () {
   if (!G || G.done) return;
-  if (!confirm('盤面を最初からやり直しますか？（タイムは続きます）')) return;
+  var btn = this;
+  if (!btn.dataset.arm) {
+    btn.dataset.arm = '1'; btn.textContent = 'もう一度押すと盤面を消します';
+    setTimeout(function () { delete btn.dataset.arm; btn.textContent = '最初から'; }, 3000);
+    return;
+  }
+  delete btn.dataset.arm; btn.textContent = '最初から';
   var act = [];
   for (var e = 0; e < G.t.E; e++) if (G.state[e] !== -1) setEdge(e, -1, act);
   if (act.length) commit(act);
@@ -1239,8 +1373,39 @@ function confetti(stars) {
   })(t0);
 }
 
+// ---------- backup code ----------
+function makeCode() {
+  var keys = snapshotSync(), o = {};
+  Object.keys(keys).forEach(function (k) { if (!/^sl_save_/.test(k)) o[k] = keys[k]; });
+  return 'LOOP1:' + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+}
+$('btnBackup').onclick = function () { $('bkText').value = makeCode(); $('bkMsg').textContent = ''; $('backupModal').classList.add('on'); };
+$('bkClose').onclick = function () { $('backupModal').classList.remove('on'); };
+$('bkCopy').onclick = function () {
+  var ta = $('bkText'); ta.value = makeCode();
+  var done = function () { $('bkMsg').textContent = 'コピーしました。メモアプリなどに保存してください'; $('bkMsg').style.color = 'var(--good)'; };
+  try { navigator.clipboard.writeText(ta.value).then(done, function () { ta.select(); $('bkMsg').textContent = '選択しました。長押しでコピーしてください'; }); }
+  catch (e) { ta.select(); $('bkMsg').textContent = '選択しました。長押しでコピーしてください'; }
+};
+$('bkLoad').onclick = function () {
+  var v = $('bkText').value.trim(), m = $('bkMsg');
+  if (v.indexOf('LOOP1:') !== 0) {
+    if (this.dataset.hint) { m.textContent = '「LOOP1:」から始まるコードを上の欄に貼り付けてから押してください'; m.style.color = 'var(--bad)'; return; }
+    $('bkText').value = ''; $('bkText').focus(); this.dataset.hint = '1';
+    m.textContent = '上の欄にコードを貼り付けて、もう一度「貼り付けて復元」を押してください'; m.style.color = 'var(--muted)'; return;
+  }
+  try {
+    var keys = JSON.parse(decodeURIComponent(escape(atob(v.slice(6)))));
+    mergeIn(keys); reloadProg();
+    m.textContent = '復元しました！ ★' + totalStars() + '・' + prog.xp + ' XP'; m.style.color = 'var(--good)';
+    delete this.dataset.hint;
+  } catch (e) { m.textContent = 'コードが読み取れませんでした。途中で切れていないか確かめてください'; m.style.color = 'var(--bad)'; }
+};
+
 // ---------- boot ----------
 applyTheme();
+setCloud('connecting');
+initCloud();
 renderHome();
 })();
 </script>
