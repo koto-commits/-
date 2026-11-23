@@ -190,7 +190,7 @@ h1 { font-size: 26px; margin: 8px 0 4px; letter-spacing: .04em; }
     <canvas id="board"></canvas>
     <div id="spinner"><div class="loop-anim"></div><div id="spinTxt">問題をつくっています…</div></div>
   </div>
-  <div id="msg">タップで線 → × → 消す。なぞると線が引けます</div>
+  <div id="msg">タップで線を引く・もう一度で消す。なぞると連続で引けます</div>
   <div class="tools">
     <button class="tool" id="tUndo"><span class="ic">↶</span>戻す</button>
     <button class="tool" id="tRedo"><span class="ic">↷</span>進む</button>
@@ -240,7 +240,7 @@ h1 { font-size: 26px; margin: 8px 0 4px; letter-spacing: .04em; }
     <li>数字のないマスは何本でもOK。</li>
   </ol>
   <div style="color:var(--muted);font-size:13px">
-    操作：辺をタップで「線 → × → 消す」。点から点へなぞると連続で線が引けます（線の上からなぞると消せます）。<br>
+    操作：辺をタップで線を引き、もう一度タップで消えます。×をつけたいときは「×モード」に切り替えてください。点から点へなぞると連続で線が引けます（線の上からなぞると消せます）。<br>
     ×は「ここには線が来ない」というメモです。<br>
     ★1 クリア　★2 ヒントなし　★3 ヒントなし＆目標タイム以内
   </div>
@@ -1001,7 +1001,7 @@ function startGame(meta) {
     updateTools();
     draw();
     startTimer();
-    setMsg(save ? 'つづきから再開しました' : (meta.lv >= 1 && !store.get('sl_tip' + meta.lv, 0) ? tipFor(meta.lv) : 'タップで線 → × → 消す。なぞると線が引けます'));
+    setMsg(save ? 'つづきから再開しました' : (meta.lv >= 1 && !store.get('sl_tip' + meta.lv, 0) ? tipFor(meta.lv) : 'タップで線を引く・もう一度で消す。なぞると連続で引けます'));
     if (meta.lv >= 1) store.set('sl_tip' + meta.lv, 1);
     if (!store.get('sl_seenRules', 0)) $('rulesModal').classList.add('on');
     // prefetch next stage
@@ -1202,7 +1202,7 @@ function endPtr(ev) {
     if (e >= 0) {
       var cur = G.state[e], nv;
       if (G.cross) nv = cur === 0 ? -1 : 0;
-      else nv = cur === -1 ? 1 : cur === 1 ? 0 : -1;
+      else nv = cur === -1 ? 1 : -1;
       setEdge(e, nv, p.act);
     }
   }
@@ -1243,7 +1243,7 @@ $('tRedo').onclick = function () {
 };
 $('tCross').onclick = function () {
   if (!G) return; G.cross = !G.cross; this.classList.toggle('on', G.cross);
-  setMsg(G.cross ? '×モード：タップ・なぞりで×をつけます' : '線モード：タップで線 → × → 消す');
+  setMsg(G.cross ? '×モード：タップ・なぞりで×をつけます' : '線モード：タップで線を引く・もう一度で消す');
 };
 $('tReset').onclick = function () {
   if (!G || G.done) return;
